@@ -1,4 +1,5 @@
 do (root = this) ->
+
   # Initial Setup
   # -------------
 
