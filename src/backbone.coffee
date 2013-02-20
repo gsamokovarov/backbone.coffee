@@ -226,7 +226,7 @@ do (root = this) ->
 
     # Return a copy of the model's `attributes` object.
     toJSON: (options) ->
-      _.clone this.attributes
+      _.clone @attributes
 
     # Proxy `Backbone.sync` by default.
     sync: ->
