@@ -210,6 +210,24 @@ do (root = this) ->
       @changed = {}
       @initialize.apply @, arguments
 
+    # A hash of attributes whose current and previous value differ.
+    changed: null
+
+    # The value returned during the last failed validation.
+    validationError: null
+
+    # The default name for the JSON `id` attribute is `"id"`. MongoDB and
+    # CouchDB users may want to set this to `"_id"`.
+    idAttribute: 'id'
+
+    # Initialize is an empty function by default. Override it with your own
+    # initialization logic.
+    initialize: ->
+
+    # Return a copy of the model's `attributes` object.
+    toJSON: (options) ->
+      _.clone(this.attributes)
+
   # Helpers
   # -------
 
