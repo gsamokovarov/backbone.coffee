@@ -29,7 +29,7 @@ do (root = this) ->
   # to its previous owner. Returns a reference to this Backbone object.
   Backbone.noConflict = ->
     root.Backbone = previousBackbone
-    this
+    @
 
   # Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
   # will fake `"PUT"` and `"DELETE"` requests via the `_method` parameter and
@@ -74,7 +74,7 @@ do (root = this) ->
       when 1
         event.callback.call(event.ctx, a1) for event in events
         return
-      when 2 
+      when 2
         event.callback.call(event.ctx, a1, a2) for event in events
         return
       when 3
