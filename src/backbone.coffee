@@ -162,7 +162,7 @@ do (root = this) ->
       deleteListener = !name and !callback
       callback = @ if typeof name is 'object'
       (listeners = {})[obj._listenerId] = obj if obj
-      for id in listeners
+      for id of listeners
         listeners[id].off(name, callback, @)
         delete @_listeners[id] if (deleteListener)
       @
