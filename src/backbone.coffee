@@ -153,3 +153,16 @@ do (root = this) ->
       triggerEvents(events, args) if events
       triggerEvents allEvents, arguments if allEvents
       @
+
+    # Tell this object to stop listening to either specific events ... or
+    # to every object it's currently listening to.
+    stopListening: (obj, name, callback) ->
+      listeners = @_listeners
+      return @ unless listeners
+      deleteListener = !name and !callback
+      callback = @ if typeof name is 'object'
+      (listeners = {})[obj._listenerId] = obj if obj
+      for id in listeners
+        listeners[id].off(name, callback, @)
+        delete @_listeners[id] if (deleteListener)
+      @
