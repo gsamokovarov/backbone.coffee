@@ -196,6 +196,8 @@ do (root = this) ->
   # Create a new model, with defined attributes. A client id (`cid`)
   # is automatically generated and assigned for you.
   Model = class Backbone.Model
+    _.extend @::, Events
+
     constructor: (attributes, options) ->
       attrs = attributes || {}
       @cid = _.uniqueId 'c'
