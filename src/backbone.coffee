@@ -117,3 +117,25 @@ do (root = this) ->
         callback.apply this, arguments
       once._callback = callback
       @on name, once, context
+
+    # Remove one or many callbacks. If `context` is null, removes all
+    # callbacks with that function. If `callback` is null, removes all
+    # callbacks for the event. If `name` is null, removes all bound
+    # callbacks for all events.
+    off: (name, callback, context) ->
+      return @ if !@_events or !eventsApi(@, 'off', name, [callback, context])
+      if !name and !callback and !context
+        @_events = {}
+        return @
+
+      names = if name then [name] else _.keys @_events
+      for name in names
+        if events = @_events[name]
+          @_events[name] = retain = []
+          if callback || context
+            for ev in events
+              if ((callback and callback isnt ev.callback and
+                                callback isnt ev.callback._callback) or
+                  (context and context isnt ev.context))
+                retain.push(ev
+          delete @_events[name] unless retain.length
