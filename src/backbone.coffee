@@ -177,7 +177,7 @@ do (root = this) ->
       id = obj._listenerId ||= _.uniqueId 'l'
       listeners[id] = obj
       callback = @ if typeof name is 'object'
-      obj[implementation] name, callback, this
+      obj[implementation] name, callback, @
       @
 
   # Aliases for backwards compatibility.
