@@ -21,7 +21,7 @@ do (root = this) ->
 
   # Require Underscore, if we're on the server, and it's not already present.
   _ = root._
-  _ = require 'underscore' if !_ and require?
+  _ = require? 'underscore' unless _
 
   # For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
   Backbone.$ = root.jQuery || root.Zepto || root.ender
