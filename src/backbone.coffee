@@ -20,7 +20,7 @@ do (root = this) ->
 
   # Require Underscore, if we're on the server, and it's not already present.
   _ = root._
-  _ = require('underscore') if not _? and require?
+  _ = require 'underscore' if !_ and require?
 
   # For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
   Backbone.$ = root.jQuery || root.Zepto || root.ender
@@ -69,19 +69,19 @@ do (root = this) ->
     [a1, a2, a3] = args
     switch args.length
       when 0
-        event.callback.call(event.ctx) for event in events
+        event.callback.call event.ctx for event in events
         return
       when 1
-        event.callback.call(event.ctx, a1) for event in events
+        event.callback.call event.ctx, a1 for event in events
         return
       when 2
-        event.callback.call(event.ctx, a1, a2) for event in events
+        event.callback.call event.ctx, a1, a2 for event in events
         return
       when 3
-        event.callback.call(event.ctx, a1, a2, a3) for event in events
+        event.callback.call event.ctx, a1, a2, a3 for event in events
         return
       else
-        event.callback.apply(event.ctx, args) for event in events
+        event.callback.apply event.ctx, args for event in events
 
   # A module that can be mixed in to *any object* in order to provide it with
   # custom events. You may bind with `on` or remove with `off` callback
@@ -187,3 +187,30 @@ do (root = this) ->
   # Allow the `Backbone` object to serve as a global event bus, for folks who
   # want global "pubsub" in a convenient place.
   _.extend Backbone, Events
+
+  # Helpers
+  # -------
+
+  # Helper function to correctly set up the prototype chain, for subclasses.
+  # Similar to `goog.inherits`, but uses a hash of prototype properties and
+  # class properties to be extended.
+  extend = (protoProps, staticProps) ->
+    class Type extends @
+      @extend = extend
+    _.extend Type, staticProps
+    _.extend Type::, protoProps
+    new Type
+
+  # Set up inheritance for the model, collection, router, view and history.
+  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend
+
+  # Throw an error when a URL is needed, and none is supplied.
+  urlError = ->
+    throw new Error 'A "url" property or function must be specified'
+
+  # Wrap an optional error callback with a fallback error event.
+  wrapError = (model, options) ->
+    error = options.error
+    options.error = (resp) ->
+      error model, resp, options if error
+      model.trigger 'error', model, resp, options
