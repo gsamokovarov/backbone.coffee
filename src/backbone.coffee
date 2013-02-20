@@ -101,7 +101,7 @@ do (root = this) ->
     on: (name, callback, context) ->
       return @ if !eventsApi(@, 'on', name, [callback, context]) or !callback
       @_events ||= {}
-      (@_events[name] ||=[]).push
+      (@_events[name] ||= []).push
         callback: callback
         context: context
         ctx: context || @
