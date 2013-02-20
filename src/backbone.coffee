@@ -114,7 +114,7 @@ do (root = this) ->
       self = @
       once = _.once ->
         self.off name, once
-        callback.apply this, arguments
+        callback.apply @, arguments
       once._callback = callback
       @on name, once, context
 
@@ -123,7 +123,7 @@ do (root = this) ->
     # callbacks for the event. If `name` is null, removes all bound
     # callbacks for all events.
     off: (name, callback, context) ->
-      return @ if !@_events or !eventsApi(@, 'off', name, [callback, context])
+      return @ if !@_events or !eventsApi @, 'off', name, [callback, context]
       if !name and !callback and !context
         @_events = {}
         return @
@@ -139,3 +139,17 @@ do (root = this) ->
                   (context and context isnt ev.context))
                 retain.push ev
           delete @_events[name] unless retain.length
+
+    # Trigger one or many events, firing all bound callbacks. Callbacks are
+    # passed the same arguments as `trigger` is, apart from the event name
+    # (unless you're listening on `"all"`, which will cause your callback to
+    # receive the true name of the event as the first argument).
+    trigger: (name) ->
+      return @ unless @_events
+      args = arguments[1..]
+      return @ unless eventsApi @, 'trigger', name, args
+      events = @_events[name]
+      allEvents = @_events.all
+      triggerEvents(events, args) if events
+      triggerEvents allEvents, arguments if allEvents
+      @
