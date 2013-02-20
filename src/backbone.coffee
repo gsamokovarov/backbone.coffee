@@ -170,8 +170,9 @@ do (root = this) ->
 
   listenMethods = listenTo: 'on', listenToOnce: 'once'
 
-  # An inversion-of-control versions of `on` and `once`. Tell *this* object to listen to
-  # an event in another object ... keeping track of what it's listening to.
+  # An inversion-of-control versions of `on` and `once`. Tell *this* object to
+  # listen to an event in another object ... keeping track of what it's
+  # listening to.
   _.each listenMethods, (implementation, method) ->
     Events[method] = (obj, name, callback) ->
       listeners = @_listeners ||= {}
@@ -188,6 +189,24 @@ do (root = this) ->
   # Allow the `Backbone` object to serve as a global event bus, for folks who
   # want global "pubsub" in a convenient place.
   _.extend Backbone, Events
+
+  # Backbone.Model
+  # --------------
+
+  # Create a new model, with defined attributes. A client id (`cid`)
+  # is automatically generated and assigned for you.
+  Model = class Backbone.Model
+    constructor: (attributes, options) ->
+      attrs = attributes || {}
+      @cid = _.uniqueId 'c'
+      @attributes = {}
+      @collection = options.collection if options?.collection
+      attrs = @parse(attrs, options) || {} if options?.parse
+      if defaults = _.result @, 'defaults'
+        attrs = _.defaults {}, attrs, defaults
+      @set attrs, options
+      @changed = {}
+      @initialize.apply @, arguments
 
   # Helpers
   # -------
