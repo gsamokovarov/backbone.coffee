@@ -196,7 +196,7 @@ do (root = this) ->
   # class properties to be extended.
   extend = (protoProps, staticProps) ->
     class Type extends @
-      @extend = extend
+      @extend: extend
     _.extend Type, staticProps
     _.extend Type::, protoProps
     new Type
