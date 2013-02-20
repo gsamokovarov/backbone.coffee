@@ -164,7 +164,7 @@ do (root = this) ->
       (listeners = {})[obj._listenerId] = obj if obj
       for id of listeners
         listeners[id].off(name, callback, @)
-        delete @_listeners[id] if (deleteListener)
+        delete @_listeners[id] if deleteListener
       @
 
   listenMethods = listenTo: 'on', listenToOnce: 'once'
