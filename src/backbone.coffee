@@ -179,3 +179,11 @@ do (root = this) ->
       callback = @ if typeof name is 'object'
       obj[implementation] name, callback, this
       @
+
+  # Aliases for backwards compatibility.
+  Events.bind   = Events.on
+  Events.unbind = Events.off
+
+  # Allow the `Backbone` object to serve as a global event bus, for folks who
+  # want global "pubsub" in a convenient place.
+  _.extend Backbone, Events
