@@ -226,7 +226,24 @@ do (root = this) ->
 
     # Return a copy of the model's `attributes` object.
     toJSON: (options) ->
-      _.clone(this.attributes)
+      _.clone this.attributes
+
+    # Proxy `Backbone.sync` by default.
+    sync: ->
+      Backbone.sync.apply @, arguments
+
+    # Get the value of an attribute.
+    get: (attr) ->
+      @attributes[attr]
+
+    # Get the HTML-escaped value of an attribute.
+    escape: (attr) ->
+      _.escape @get(attr)
+
+    # Returns `true` if the attribute contains a value that is not null
+    # or undefined.
+    has: (attr) ->
+      @get(attr)?
 
   # Helpers
   # -------
