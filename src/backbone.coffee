@@ -137,5 +137,5 @@ do (root = this) ->
               if ((callback and callback isnt ev.callback and
                                 callback isnt ev.callback._callback) or
                   (context and context isnt ev.context))
-                retain.push(ev
+                retain.push ev
           delete @_events[name] unless retain.length
