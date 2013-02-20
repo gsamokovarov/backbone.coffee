@@ -166,3 +166,16 @@ do (root = this) ->
         listeners[id].off(name, callback, @)
         delete @_listeners[id] if (deleteListener)
       @
+
+  listenMethods = listenTo: 'on', listenToOnce: 'once'
+
+  # An inversion-of-control versions of `on` and `once`. Tell *this* object to listen to
+  # an event in another object ... keeping track of what it's listening to.
+  _.each listenMethods, (implementation, method) ->
+    Events[method] = (obj, name, callback) ->
+      listeners = @_listeners ||= {}
+      id = obj._listenerId ||= _.uniqueId 'l'
+      listeners[id] = obj
+      callback = @ if typeof name is 'object'
+      obj[implementation] name, callback, this
+      @
