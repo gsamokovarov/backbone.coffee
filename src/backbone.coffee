@@ -145,7 +145,7 @@ do (root = this) ->
     # receive the true name of the event as the first argument).
     trigger: (name) ->
       return @ unless @_events
-      args = arguments[1..]
+      args = slice.call arguments, 1
       return @ unless eventsApi @, 'trigger', name, args
       events = @_events[name]
       allEvents = @_events.all
@@ -257,7 +257,7 @@ do (root = this) ->
     new Type
 
   # Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend
+  Model.extend = extend
 
   # Throw an error when a URL is needed, and none is supplied.
   urlError = ->

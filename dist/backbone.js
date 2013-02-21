@@ -144,7 +144,7 @@ var __hasProp = {}.hasOwnProperty,
       if (!this._events) {
         return this;
       }
-      args = arguments.slice(1);
+      args = slice.call(arguments, 1);
       if (!eventsApi(this, 'trigger', name, args)) {
         return this;
       }
