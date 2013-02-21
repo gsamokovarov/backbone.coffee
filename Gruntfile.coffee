@@ -32,7 +32,7 @@ module.exports = (grunt) ->
         tasks: ['coffee']
       lib:
         files: ['lib/**/*.js']
-        tasks: ['nodeunit']
+        tasks: ['qunit']
 
   grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
