@@ -57,9 +57,9 @@ do (root = this) ->
       for key, value of name
         obj[action].apply obj, [key, value].concat(rest)
     else if eventSplitter.test name
-      names = name.split eventSplitter
-      for name in names
+      for name in name.split eventSplitter
         obj[action].apply obj, [name].concat(rest)
+      null
     else
       true
 
@@ -69,19 +69,19 @@ do (root = this) ->
     [a1, a2, a3] = args
     switch args.length
       when 0
-        event.callback.call event.ctx for event in events
+        ev.callback.call ev.ctx for ev in events
         return
       when 1
-        event.callback.call event.ctx, a1 for event in events
+        ev.callback.call ev.ctx, a1 for ev in events
         return
       when 2
-        event.callback.call event.ctx, a1, a2 for event in events
+        ev.callback.call ev.ctx, a1, a2 for ev in events
         return
       when 3
-        event.callback.call event.ctx, a1, a2, a3 for event in events
+        ev.callback.call ev.ctx, a1, a2, a3 for ev in events
         return
       else
-        event.callback.apply event.ctx, args for event in events
+        ev.callback.apply ev.ctx, args for ev in events
 
   # A module that can be mixed in to *any object* in order to provide it with
   # custom events. You may bind with `on` or remove with `off` callback
@@ -194,7 +194,6 @@ do (root = this) ->
   # Create a new model, with defined attributes. A client id (`cid`)
   # is automatically generated and assigned for you.
   Model = class Backbone.Model
-    _.extend @::, Events
 
     constructor: (attributes, options) ->
       attrs = attributes || {}
@@ -207,6 +206,8 @@ do (root = this) ->
       @set attrs, options
       @changed = {}
       @initialize.apply @, arguments
+
+    _.extend @::, Events
 
     # A hash of attributes whose current and previous value differ.
     changed: null
