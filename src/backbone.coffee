@@ -56,10 +56,11 @@ do (root = this) ->
     if typeof name is 'object'
       for key, value of name
         obj[action].apply obj, [key, value].concat(rest)
+      false
     else if eventSplitter.test name
       for name in name.split eventSplitter
         obj[action].apply obj, [name].concat(rest)
-      null
+      false
     else
       true
 
