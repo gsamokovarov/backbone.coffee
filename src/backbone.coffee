@@ -20,8 +20,7 @@ do (root = this) ->
   Backbone.VERSION = '0.9.10'
 
   # Require Underscore, if we're on the server, and it's not already present.
-  _ = root._
-  _ = require? 'underscore' unless _
+  _ = root._ or require? 'underscore'
 
   # For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
   Backbone.$ = root.jQuery or root.Zepto or root.ender
