@@ -100,10 +100,9 @@ do (root = this) ->
     # all events fired.
     on: (name, callback, context) ->
       return @ if !eventsApi(@, 'on', name, [callback, context]) or !callback
-      ((@_events ||= {})[name] ||= []).push
-        callback: callback
-        context: context
-        ctx: context || @
+      @_events ||= {}
+      events = @_events[name] ||= []
+      events.push callback: callback, context: context, ctx: context or @
       @
 
     # Bind events to only be triggered a single time. After the first time
@@ -138,6 +137,7 @@ do (root = this) ->
                   (context and context isnt ev.context))
                 retain.push ev
           delete @_events[name] unless retain.length
+      @
 
     # Trigger one or many events, firing all bound callbacks. Callbacks are
     # passed the same arguments as `trigger` is, apart from the event name
