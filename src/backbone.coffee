@@ -150,7 +150,7 @@ do (root = this) ->
       return @ unless eventsApi @, 'trigger', name, args
       events = @_events[name]
       allEvents = @_events.all
-      triggerEvents(events, args) if events
+      triggerEvents events, args if events
       triggerEvents allEvents, arguments if allEvents
       @
 
