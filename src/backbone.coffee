@@ -71,16 +71,12 @@ do (root = this) ->
     switch args.length
       when 0
         ev.callback.call ev.ctx for ev in events
-        return
       when 1
         ev.callback.call ev.ctx, a1 for ev in events
-        return
       when 2
         ev.callback.call ev.ctx, a1, a2 for ev in events
-        return
       when 3
         ev.callback.call ev.ctx, a1, a2, a3 for ev in events
-        return
       else
         ev.callback.apply ev.ctx, args for ev in events
 
