@@ -130,7 +130,7 @@ do (root = this) ->
       for name in names
         if events = @_events[name]
           @_events[name] = retain = []
-          if callback || context
+          if callback or context
             for ev in events
               if ((callback and callback isnt ev.callback and
                                 callback isnt ev.callback._callback) or
