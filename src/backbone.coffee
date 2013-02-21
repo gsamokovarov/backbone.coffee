@@ -69,16 +69,11 @@ do (root = this) ->
   triggerEvents = (events, args) ->
     [a1, a2, a3] = args
     switch args.length
-      when 0
-        ev.callback.call ev.ctx for ev in events
-      when 1
-        ev.callback.call ev.ctx, a1 for ev in events
-      when 2
-        ev.callback.call ev.ctx, a1, a2 for ev in events
-      when 3
-        ev.callback.call ev.ctx, a1, a2, a3 for ev in events
-      else
-        ev.callback.apply ev.ctx, args for ev in events
+      when 0 then ev.callback.call ev.ctx for ev in events
+      when 1 then ev.callback.call ev.ctx, a1 for ev in events
+      when 2 then ev.callback.call ev.ctx, a1, a2 for ev in events
+      when 3 then ev.callback.call ev.ctx, a1, a2, a3 for ev in events
+      else ev.callback.apply ev.ctx, args for ev in events
 
   # A module that can be mixed in to *any object* in order to provide it with
   # custom events. You may bind with `on` or remove with `off` callback
