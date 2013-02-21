@@ -24,7 +24,7 @@ do (root = this) ->
   _ = require? 'underscore' unless _
 
   # For Backbone's purposes, jQuery, Zepto, or Ender owns the `$` variable.
-  Backbone.$ = root.jQuery || root.Zepto || root.ender
+  Backbone.$ = root.jQuery or root.Zepto or root.ender
 
   # Runs Backbone.js in *noConflict* mode, returning the `Backbone` variable
   # to its previous owner. Returns a reference to this Backbone object.
