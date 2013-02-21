@@ -57,7 +57,7 @@ do (root = this) ->
       for key, value of name
         obj[action].apply obj, [key, value].concat(rest)
     else if eventSplitter.test name
-      names = name.split(eventSplitter)
+      names = name.split eventSplitter
       for name in names
         obj[action].apply obj, [name].concat(rest)
     else
@@ -269,4 +269,3 @@ do (root = this) ->
     error = options.error
     options.error = (resp) ->
       error model, resp, options if error
-      model.trigger 'error', model, resp, options
