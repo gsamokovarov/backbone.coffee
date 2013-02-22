@@ -289,7 +289,7 @@ do (root = this) ->
           @_pending = false
           @trigger 'change', @, options
 
-      @_pending = false
+      @_pending  = false
       @_changing = false
       @
 
@@ -320,7 +320,7 @@ do (root = this) ->
       unless diff
         return if @hasChanged() then _.clone @changed else false
       changed = false
-      old = if @_changing then @_previousAttributes else @attributes
+      old     = if @_changing then @_previousAttributes else @attributes
       for attr, val of diff
         continue if _.isEqual old[attr], val
         (changed ||= {})[attr] = val
@@ -329,7 +329,7 @@ do (root = this) ->
     # Get the previous value of an attribute, recorded at the time the last
     # `"change"` event was fired.
     previous: (attr) ->
-      return @ unless attr? and @_previousAttributes
+      return null unless attr? and @_previousAttributes
       @_previousAttributes[attr]
 
     # Get all of the attributes of the model at the time of the previous
