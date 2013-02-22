@@ -390,8 +390,7 @@ do (root = this) ->
 
       wrapError @, options
 
-      method = if @isNew() then 'create' else
-        if options.patch then 'patch' else 'update'
+      method = if @isNew() then 'create' else if options.patch then 'patch' else 'update'
       options.attrs = attrs if method is 'patch'
       xhr = @sync method, @, options
 
