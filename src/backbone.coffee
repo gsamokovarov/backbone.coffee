@@ -301,8 +301,6 @@ do (root = this) ->
     # Clear all attributes on the model, firing `"change"` unless you choose
     # to silence it.
     clear: (options) ->
-      attrs = {}
-      attrs[key] = undefined for key in @attributes
       @set attrs, _.extend({}, options, unset: true)
 
     # Determine if the model has changed since the last `"change"` event.
@@ -320,7 +318,7 @@ do (root = this) ->
       unless diff
         return if @hasChanged() then _.clone @changed else false
       changed = false
-      old     = if @_changing then @_previousAttributes else @attributes
+      old = if @_changing then @_previousAttributes else @attributes
       for attr, val of diff
         continue if _.isEqual old[attr], val
         (changed ||= {})[attr] = val
@@ -336,6 +334,20 @@ do (root = this) ->
     # `"change"` event.
     previousAttributes: ->
       _.clone @_previousAttributes
+
+    # Fetch the model from the server. If the server's representation of the
+    # model differs from its current attributes, they will be overriden,
+    # triggering a `"change"` event.
+    fetch: (options) ->
+      options = if options? then _.clone options else {}
+      options.parse = true if options.parse is undefined
+      success = options.success
+      options.success = (resp) =>
+        return false unless @set @parse(resp, options), options
+        success? @, resp, options
+        @trigger 'sync', @, resp, options
+      wrapError @this, options
+      @sync 'read', @, options
 
   # Helpers
   # -------
