@@ -316,7 +316,7 @@ do (root = this) ->
     # persisted to the server. Unset attributes will be set to undefined.
     # You can also pass an attributes object to diff against the model,
     # determining if there *would be* a change.
-    changedAttributes: (diff) >
+    changedAttributes: (diff) ->
       unless diff
         return if @hasChanged() then _.clone @changed else false
       changed = false
