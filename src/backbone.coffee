@@ -395,7 +395,7 @@ do (root = this) ->
       xhr = @sync method, @, options
 
       # Restore attributes.
-      @.attributes = attributes if attrs and options.wait
+      @attributes = attributes if attrs and options.wait
 
       xhr
 
