@@ -236,6 +236,80 @@ do (root = this) ->
     has: (attr) ->
       @get(attr)?
 
+    # Set a hash of model attributes on the object, firing `"change"` unless
+    # you choose to silence it.
+    set: (key, val, options = {}) ->
+      return @ unless key?
+
+      # Handle both `"key", value` and `{key: value}` -style arguments.
+      if typeof key is 'object'
+        [attrs, options] = [key, val]
+      else
+        (attrs = {})[key] = val
+
+      # Run validation.
+      return false unless @_validate attrs, options
+
+      # Extract attributes and options.
+      unset      = options.unset
+      silent     = options.silent
+      changes    = []
+      changing   = @_changing
+      @_changing = true
+
+      unless changing
+        @_previousAttributes = _.clone @attributes
+        @changed = {}
+      [current, prev] = [@attributes, @_previousAttributes]
+
+      # Check for changes of `id`.
+      @id = attrs[@idAttribute] if @idAttribute in attrs
+
+      # For each `set` attribute, update or delete the current value.
+      for attr, val of attrs
+        changes.push attr unless _.isEqual current[attr], val
+        if _.isEqual prev[attr], val
+          delete @changed[attr]
+        else
+          @changed[attr] = val
+        if unset
+          delete current[attr]
+        else
+          current[attr] = val
+
+      # Trigger all relevant attribute changes.
+      unless !silent
+        @_pending = true if changes.length
+        for change in changes
+          @trigger "change:#{change}", @, current[change], options
+
+      return @ if changing
+      unless silent
+        while @_pending
+          @_pending = false
+          @trigger 'change', @, options
+
+      @_pending = false
+      @_changing = false
+      @
+
+    # Remove an attribute from the model, firing `"change"` unless you choose
+    # to silence it. `unset` is a noop if the attribute doesn't exist.
+    unset: (attr, options) ->
+      @set attr, undefined, _.extend({}, options, unset: true)
+
+    # Clear all attributes on the model, firing `"change"` unless you choose
+    # to silence it.
+    clear: (options) ->
+      attrs = {}
+      attrs[key] = undefined for key in @attributes
+      @set attrs, _.extend({}, options, unset: true)
+
+    # Determine if the model has changed since the last `"change"` event.
+    # If you specify an attribute name, determine if that attribute has changed.
+    hasChanged: (attr) ->
+      if attr? then _.has @changed, attr else !@isEmpty @changed
+
   # Helpers
   # -------
 
