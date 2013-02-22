@@ -310,6 +310,33 @@ do (root = this) ->
     hasChanged: (attr) ->
       if attr? then _.has @changed, attr else !@isEmpty @changed
 
+    # Return an object containing all the attributes that have changed, or
+    # false if there are no changed attributes. Useful for determining what
+    # parts of a view need to be updated and/or what attributes need to be
+    # persisted to the server. Unset attributes will be set to undefined.
+    # You can also pass an attributes object to diff against the model,
+    # determining if there *would be* a change.
+    changedAttributes: (diff) >
+      unless diff
+        return if @hasChanged() then _.clone @changed else false
+      changed = false
+      old = if @_changing then @_previousAttributes else @attributes
+      for attr, val of diff
+        continue if _.isEqual old[attr], val
+        (changed ||= {})[attr] = val
+      changed
+
+    # Get the previous value of an attribute, recorded at the time the last
+    # `"change"` event was fired.
+    previous: (attr) ->
+      return @ unless attr? and @_previousAttributes
+      @_previousAttributes[attr]
+
+    # Get all of the attributes of the model at the time of the previous
+    # `"change"` event.
+    previousAttributes: ->
+      _.clone @_previousAttributes
+
   # Helpers
   # -------
 
