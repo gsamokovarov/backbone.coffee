@@ -349,6 +349,57 @@ do (root = this) ->
       wrapError @this, options
       @sync 'read', @, options
 
+    # Set a hash of model attributes, and sync the model to the server.
+    # If the server returns an attributes hash that differs, the model's
+    # state will be `set` again.
+    save: (key, val, options = {}) ->
+      attributes = @attributes
+
+      # Handle both `"key", value` and `{key: value}` -style arguments.
+      if !key? or typeof key is 'object'
+        [attrs, options] = [key, val]
+      else
+        (attrs = {})[key] = val
+
+      # If we're not waiting and attributes exist, save acts as `set(attr).save(null, opts)`.
+      if attrs and !options?.wait and @set(attrs, options)
+        return false
+
+      options = _.extend {validate: true}, options
+
+      # Do not persist invalid models.
+      return false unless @_validate attrs, options
+
+      # Set temporary attributes if `{wait: true}`.
+      if attrs and options.wait
+        @.attributes = _.extend {}, attributes, attrs
+
+      # After a successful server-side save, the client is (optionally)
+      # updated with the server-side state.
+      options.parse = true if options.parse is undefined
+      success = options.success
+      options.success = (resp) =>
+        # Ensure attributes are restored during synchronous saves.
+        @attributes = attributes
+        serverAttrs = @parse resp, options
+        serverAttrs = _.extend (attrs || {}), serverAttrs if options.wait
+        if _.isObject(serverAttrs) and !@set(serverAttrs, options)
+          return false
+        success? model, resp, options
+        model.trigger 'sync', @, resp, options
+
+      wrapError @, options
+
+      method = if @isNew() then 'create' else
+        if options.patch then 'patch' else 'update'
+      options.attrs = attrs if method is 'patch'
+      xhr = @sync method, @, options
+
+      # Restore attributes.
+      @.attributes = attributes if attrs and options.wait
+
+      xhr
+
   # Helpers
   # -------
 
