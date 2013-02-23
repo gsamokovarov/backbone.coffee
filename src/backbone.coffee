@@ -346,7 +346,7 @@ do (root = this) ->
         return false unless @set @parse(resp, options), options
         success? @, resp, options
         @trigger 'sync', @, resp, options
-      wrapError @this, options
+      wrapError @, options
       @sync 'read', @, options
 
     # Set a hash of model attributes, and sync the model to the server.
@@ -362,7 +362,7 @@ do (root = this) ->
         (attrs = {})[key] = val
 
       # If we're not waiting and attributes exist, save acts as `set(attr).save(null, opts)`.
-      if attrs and !options?.wait and @set(attrs, options)
+      if attrs and !options?.wait and @set attrs, options
         return false
 
       options = _.extend {validate: true}, options
@@ -372,7 +372,7 @@ do (root = this) ->
 
       # Set temporary attributes if `{wait: true}`.
       if attrs and options.wait
-        @.attributes = _.extend {}, attributes, attrs
+        @attributes = _.extend {}, attributes, attrs
 
       # After a successful server-side save, the client is (optionally)
       # updated with the server-side state.
@@ -398,6 +398,65 @@ do (root = this) ->
       @attributes = attributes if attrs and options.wait
 
       xhr
+
+    # Destroy this model on the server if it was already persisted.
+    # Optimistically removes the model from its collection, if it has one.
+    # If `wait: true` is passed, waits for the server to respond before removal.
+    destroy: (options) ->
+      options = if options? then _.clone options else {}
+      success = options.success
+      destroy = => @trigger 'destroy', @, @collection, options
+
+      options.success = (resp) =>
+        destroy() if options.wait or @isNew()
+        success?(model, resp, options)
+        @trigger 'sync', model, resp, options unless @isNew()
+
+      if @isNew()
+        options.success()
+        return false
+      wrapError @, options
+
+      xhr = @sync 'delete', @, options
+      destroy uness options.wait
+      xhr
+
+    # Default URL for the model's representation on the server -- if you're
+    # using Backbone's restful methods, override this to change the endpoint
+    # that will be called.
+    url: ->
+      base = _.result(@, 'urlRoot') or _.result(@.collection, 'url') or urlError()
+      return base if @isNew()
+      base + (if base.charAt(base.length - 1) is '/' then '' else '/') + encodeURIComponent(@id)
+
+    # **parse** converts a response into the hash of attributes to be `set` on
+    # the model. The default implementation is just to pass the response along.
+    parse: (resp, options) ->
+      resp
+
+    # Create a new model with identical attributes to this one.
+    clone: ->
+      new @constructor @attributes
+
+    # A model is new if it has never been saved to the server, and lacks an id.
+    isNew: ->
+      !@id?
+
+    # Check if the model is currently in a valid state.
+    isValid: (options) ->
+      !@validate? @attributes, options
+
+    # Run validation against the next complete set of model attributes,
+    # returning `true` if all is well. Otherwise, fire an
+    # `"invalid"` event and call the invalid callback, if specified.
+    _validate: (attrs, options) ->
+      return true if !options.validate or !@validate
+      attrs = _.extend {}, @attributes, attrs
+      error = @validationError = @validate(attrs, options) || null
+      return true unless error
+      @trigger 'invalid', @, error, (options || {})
+      false
+
 
   # Helpers
   # -------
