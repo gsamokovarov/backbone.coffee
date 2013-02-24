@@ -476,6 +476,23 @@ do (root = this) ->
 
     _.extend @::, Events
 
+    # The default model for a collection is just a **Backbone.Model**.
+    # This should be overridden in most cases.
+    model: Model
+
+    # Initialize is an empty function by default. Override it with your own
+    # initialization logic.
+    initialize: ->
+
+    # The JSON representation of a Collection is an array of the
+    # models' attributes.
+    toJSON: (options) ->
+      @map (model) -> model.toJSON options
+
+    # Proxy `Backbone.sync` by default.
+    sync: ->
+      Backbone.sync.apply @, arguments
+
   # Helpers
   # -------
 
