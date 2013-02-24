@@ -551,6 +551,50 @@ do (root = this) ->
 
       @
 
+    # Remove a model, or a list of models from the set.
+    remove: (models, options = {}) ->
+      models = if _.isArray models then models.slice() else [models]
+      for model in models
+        continue unless model = @get model
+        delete @_byId[model.id]
+        delete @_byId[model.cid]
+        index = @indexOf model
+        @models.splice index, 1
+        @length--
+        unless options.silent
+          options.index = index
+          model.trigger 'remove', model, this, options
+        @_removeReference(model)
+      @
+
+    # Add a model to the end of the collection.
+    push: (model, options) ->
+      model = @_prepareModel model, options
+      @add model, _.extend({at: @length}, options)
+      model
+
+    # Remove a model from the end of the collection.
+    pop: (options) ->
+      model = @at(@length - 1)
+      @remove model, options
+      model
+
+    # Add a model to the beginning of the collection.
+    unshift: (model, options) ->
+      model = this._prepareModel model, options
+      @add model, _.extend({at: 0}, options)
+      model
+
+    # Remove a model from the beginning of the collection.
+    shift: (options) ->
+      model = this.at 0
+      @remove model, options
+      model
+
+    # Slice out a sub-array of models from the collection.
+    slice: (begin, end) ->
+      @models.slice begin, end
+
     # Get a model from the set by id.
     get: (obj) ->
       @_byId[if obj.id? then obj.id else obj.cid or obj] if obj?
