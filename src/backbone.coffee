@@ -297,6 +297,8 @@ do (root = this) ->
     # Clear all attributes on the model, firing `"change"` unless you choose
     # to silence it.
     clear: (options) ->
+      attrs = {}
+      attrs[key] = undefined for key of @attributes
       @set attrs, _.extend({}, options, unset: true)
 
     # Determine if the model has changed since the last `"change"` event.
