@@ -551,16 +551,29 @@ do (root = this) ->
 
       @
 
-    add: (models, options) ->
-      for model in [].concat(models)
-        model.collection = @
-        @models.push model
+    # Get a model from the set by id.
+    get: (obj) ->
+      @_byId[if obj.id? then obj.id else obj.cid or obj] unless obj?
 
     # Reset all internal state. Called when the collection is reset.
     _reset: ->
       @length = 0
       @models = []
       @_byId  = {}
+
+    # Prepare a model or hash of attributes to be added to this collection.
+    _prepareModel: (attrs, options = {}) ->
+      if attrs instanceof Model
+        attrs.collection = @ unless attrs.collection
+        return attrs
+
+      options.collection = @
+      model = new @model attrs, options
+      unless model._validate attrs, options
+        @trigger 'invalid', @, attrs, options
+        return false
+
+      model
 
   # Backbone.sync
   # -------------
