@@ -302,7 +302,7 @@ do (root = this) ->
     # Determine if the model has changed since the last `"change"` event.
     # If you specify an attribute name, determine if that attribute has changed.
     hasChanged: (attr) ->
-      if attr? then _.has @changed, attr else !@isEmpty @changed
+      if attr? then _.has @changed, attr else !_.isEmpty @changed
 
     # Return an object containing all the attributes that have changed, or
     # false if there are no changed attributes. Useful for determining what
