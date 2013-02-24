@@ -265,7 +265,7 @@ do (root = this) ->
       [current, prev] = [@attributes, @_previousAttributes]
 
       # Check for changes of `id`.
-      @id = attrs[@idAttribute] if @idAttribute in attrs
+      @id = attrs[@idAttribute] if attrs[@idAttribute]?
 
       # For each `set` attribute, update or delete the current value.
       for attr, val of attrs
@@ -427,7 +427,7 @@ do (root = this) ->
     # using Backbone's restful methods, override this to change the endpoint
     # that will be called.
     url: ->
-      base = _.result(@, 'urlRoot') or _.result(@.collection, 'url') or urlError()
+      base = _.result(@, 'urlRoot') or _.result(@collection, 'url') or urlError()
       return base if @isNew()
       base + (if base.charAt(base.length - 1) is '/' then '' else '/') + encodeURIComponent(@id)
 
@@ -495,7 +495,9 @@ do (root = this) ->
 
     # Add a model, or list of models to the set.
     add: (models, options) ->
-      @models.push [].concat(models)
+      for model in [].concat(models)
+        model.collection = @
+        @models.push model
 
     # Reset all internal state. Called when the collection is reset.
     _reset: ->
