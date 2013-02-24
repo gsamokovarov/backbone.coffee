@@ -465,10 +465,10 @@ do (root = this) ->
 
     constructor: (models, options = {}) ->
       @model = options.model if options.model
-      comparator = options.comparator if options.comparator isnt undefined
+      @comparator = options.comparator if options.comparator isnt undefined
       @_reset()
-      @initialize?.apply @, arguments
-      @reset? models, _.extend({silent: true}, options) if models
+      @initialize.apply @, arguments
+      @reset models, _.extend({silent: true}, options) if models
 
     _.extend @::, Events
 
@@ -521,7 +521,7 @@ do (root = this) ->
         # `id` and by `cid`.
         model.on 'all', @_onModelEvent, @
         @_byId[model.cid] = model
-        this._byId[model.id] = model if model?
+        @_byId[model.id] = model if model?
 
       if options.remove
         remove = []
@@ -564,7 +564,7 @@ do (root = this) ->
         unless options.silent
           options.index = index
           model.trigger 'remove', model, @, options
-        @_removeReference(model)
+        @_removeReference model
       @
 
     # Add a model to the end of the collection.
@@ -608,7 +608,7 @@ do (root = this) ->
     where: (attrs, first) ->
       if _.isEmpty attrs
         return if first then undefined else []
-      @[if first then 'find' else 'filter'] ->
+      @[if first then 'find' else 'filter'] (model) ->
         for key of attrs
           return false unless attrs[key] is model.get key
         true
@@ -646,6 +646,57 @@ do (root = this) ->
       @add models, options
       @
 
+    # When you have more items than you want to add or remove individually,
+    # you can reset the entire set with a new list of models, without firing
+    # any `add` or `remove` events. Fires `reset` when finished.
+    reset: (models, options) ->
+      options = if options then _.clone options else {}
+      models = @parse models, options if options.parse
+      @_removeReference model for model in models
+      options.previousModels = @models
+      @_reset()
+      @add models, _.extend({silent: true}, options) if models
+      @trigger 'reset', @, options unless options.silent
+      @
+
+    # Fetch the default set of models for this collection, resetting the
+    # collection when they arrive. If `update: true` is passed, the response
+    # data will be passed through the `update` method instead of `reset`.
+    fetch: (options) ->
+      options = if options then _.clone options else {}
+      options.parse = true if options.parse is undefined
+      success = options.success
+      options.success = (resp) =>
+        console.log @, resp
+        @[if options.update then 'update' else 'reset'] resp, options
+        success? @, resp, options
+        @trigger 'sync', @, resp, options
+      wrapError @, options
+      @sync 'read', @, options
+
+    # Create a new instance of a model in this collection. Add the model to the
+    # collection immediately, unless `wait: true` is passed, in which case we
+    # wait for the server to agree.
+    create: (model, options) ->
+      options = if options then _.clone options else {}
+      return false unless model = @_prepareModel(model, options)
+      @add model, options unless options.wait
+      success = options.success
+      options.success = (resp) =>
+        @add model, options if options.wait
+        success? model, resp, options
+      model.save null, options
+      model
+
+    # **parse** converts a response into a list of models to be added to the
+    # collection. The default implementation is just to pass it through.
+    parse: (resp, options) ->
+      resp
+
+    # Create a new collection with an identical list of models as this one.
+    clone: ->
+      new @constructor @models
+
     # Reset all internal state. Called when the collection is reset.
     _reset: ->
       @length = 0
@@ -665,6 +716,27 @@ do (root = this) ->
         return false
 
       model
+
+    # Internal method to remove a model's ties to a collection.
+    _removeReference: (model) ->
+      delete model.collection if @ is model.collection
+      model.off 'all', @_onModelEvent, @
+
+    # Internal method called every time a model in the set fires an event.
+    # Sets need to update their indexes when models change ids. All other
+    # events simply proxy through. "add" and "remove" events that originate
+    # in other collections are ignored.
+    _onModelEvent: (event, model, collection, options) ->
+      return if (event is 'add' or event is 'remove') and collection isnt @
+      @remove model, options if event is 'destroy'
+      if model and event is "change:#{model.idAttribute}"
+        delete @_byId[model.previous model.idAttribute]
+        @_byId[model.id] = model if model.id?
+      @trigger.apply @, arguments
+
+    sortedIndex: (model, value = @comparator, context) ->
+      iterator = if _.isFunction value then value else (model) -> model.get value
+      _.sortedIndex @models, model, iterator, context
 
   # Underscore methods that we want to implement on the Collection.
   methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
@@ -688,7 +760,7 @@ do (root = this) ->
   _.each attributeMethods, (method) ->
     Collection::[method] = (value, context) ->
       iterator = if _.isFunction value then value else (model) -> model.get value
-      return _[method] @models, iterator, context
+      _[method] @models, iterator, context
 
   # Backbone.sync
   # -------------
