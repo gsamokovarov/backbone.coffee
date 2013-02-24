@@ -652,7 +652,7 @@ do (root = this) ->
     reset: (models, options) ->
       options = if options then _.clone options else {}
       models = @parse models, options if options.parse
-      @_removeReference model for model in models
+      @_removeReference model for model in models or []  # XXX
       options.previousModels = @models
       @_reset()
       @add models, _.extend({silent: true}, options) if models
@@ -667,7 +667,6 @@ do (root = this) ->
       options.parse = true if options.parse is undefined
       success = options.success
       options.success = (resp) =>
-        console.log @, resp
         @[if options.update then 'update' else 'reset'] resp, options
         success? @, resp, options
         @trigger 'sync', @, resp, options
