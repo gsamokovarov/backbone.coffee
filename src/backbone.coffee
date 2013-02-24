@@ -470,7 +470,7 @@ do (root = this) ->
     constructor: (models, options = {}) ->
       @model = options.model if options.model
       comparator = options.comparator if options.comparator isnt undefined
-      @_reset?()
+      @_reset()
       @initialize?.apply @, arguments
       @reset? models, _.extend({silent: true}, options) if models
 
@@ -492,6 +492,16 @@ do (root = this) ->
     # Proxy `Backbone.sync` by default.
     sync: ->
       Backbone.sync.apply @, arguments
+
+    # Add a model, or list of models to the set.
+    add: (models, options) ->
+      @models.push [].concat(models)
+
+    # Reset all internal state. Called when the collection is reset.
+    _reset: ->
+      @length = 0
+      @models = []
+      @_byId  = {}
 
   # Helpers
   # -------
