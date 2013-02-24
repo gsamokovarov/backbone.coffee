@@ -446,7 +446,7 @@ do (root = this) ->
     # returning `true` if all is well. Otherwise, fire an
     # `"invalid"` event and call the invalid callback, if specified.
     _validate: (attrs, options) ->
-      return true unless options?.validate? and validate?
+      return true unless options?.validate and @validate?
       attrs = _.extend {}, @attributes, attrs
       error = @validationError = @validate(attrs, options) || null
       return true unless error
