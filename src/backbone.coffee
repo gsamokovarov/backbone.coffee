@@ -563,7 +563,7 @@ do (root = this) ->
         @length--
         unless options.silent
           options.index = index
-          model.trigger 'remove', model, this, options
+          model.trigger 'remove', model, @, options
         @_removeReference(model)
       @
 
@@ -581,13 +581,13 @@ do (root = this) ->
 
     # Add a model to the beginning of the collection.
     unshift: (model, options) ->
-      model = this._prepareModel model, options
+      model = @_prepareModel model, options
       @add model, _.extend({at: 0}, options)
       model
 
     # Remove a model from the beginning of the collection.
     shift: (options) ->
-      model = this.at 0
+      model = @at 0
       @remove model, options
       model
 
