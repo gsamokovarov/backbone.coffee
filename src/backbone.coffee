@@ -360,7 +360,7 @@ do (root = this) ->
         (attrs = {})[key] = val
 
       # If we're not waiting and attributes exist, save acts as `set(attr).save(null, opts)`.
-      if attrs and !options?.wait and @set attrs, options
+      if attrs and !options?.wait and !@set attrs, options
         return false
 
       options = _.extend {validate: true}, options
