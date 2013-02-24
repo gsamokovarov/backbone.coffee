@@ -265,7 +265,7 @@ do (root = this) ->
       [current, prev] = [@attributes, @_previousAttributes]
 
       # Check for changes of `id`.
-      @id = attrs[@idAttribute] if attrs[@idAttribute]?
+      @id = attrs[@idAttribute] if _.has attrs, @idAttribute
 
       # For each `set` attribute, update or delete the current value.
       for attr, val of attrs
