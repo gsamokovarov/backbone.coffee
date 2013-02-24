@@ -188,11 +188,11 @@ do (root = this) ->
   Model = class Backbone.Model
 
     constructor: (attributes, options) ->
-      attrs = attributes || {}
+      attrs = attributes or {}
       @cid = _.uniqueId 'c'
       @attributes = {}
       @collection = options.collection if options?.collection
-      attrs = @parse(attrs, options) || {} if options?.parse
+      attrs = @parse(attrs, options) or {} if options?.parse
       if defaults = _.result @, 'defaults'
         attrs = _.defaults {}, attrs, defaults
       @set attrs, options
@@ -238,7 +238,7 @@ do (root = this) ->
 
     # Set a hash of model attributes on the object, firing `"change"` unless
     # you choose to silence it.
-    set: (key, val, options = {}) ->
+    set: (key, val, options) ->
       return @ unless key?
 
       # Handle both `"key", value` and `{key: value}` -style arguments.
@@ -246,6 +246,8 @@ do (root = this) ->
         [attrs, options] = [key, val]
       else
         (attrs = {})[key] = val
+
+      options ||= {}
 
       # Run validation.
       return false unless @_validate attrs, options
@@ -450,13 +452,29 @@ do (root = this) ->
     # returning `true` if all is well. Otherwise, fire an
     # `"invalid"` event and call the invalid callback, if specified.
     _validate: (attrs, options) ->
-      return true if !options.validate or !@validate
+      return true unless options?.validate? and validate?
       attrs = _.extend {}, @attributes, attrs
       error = @validationError = @validate(attrs, options) || null
       return true unless error
       @trigger 'invalid', @, error, (options || {})
       false
 
+  # Backbone.Collection
+  # -------------------
+
+  # Provides a standard collection class for our sets of models, ordered
+  # or unordered. If a `comparator` is specified, the Collection will maintain
+  # its models in sort order, as they're added and removed.
+  Collection = class Backbone.Collection
+
+    constructor: (models, options = {}) ->
+      @model = options.model if options.model
+      comparator = options.comparator if options.comparator isnt undefined
+      @_reset()
+      @initialize.apply @, arguments
+      @reset models, _.extend({silent: true}, options) if models
+
+    _.extend @::, Events
 
   # Helpers
   # -------
@@ -466,13 +484,12 @@ do (root = this) ->
   # class properties to be extended.
   extend = (protoProps, staticProps) ->
     class Type extends @
+      _.extend @, staticProps
+      _.extend @::, protoProps
       @extend: extend
-    _.extend Type, staticProps
-    _.extend Type::, protoProps
-    new Type
 
   # Set up inheritance for the model, collection, router, view and history.
-  Model.extend = extend
+  Model.extend = Collection.extend = extend
 
   # Throw an error when a URL is needed, and none is supplied.
   urlError = ->
