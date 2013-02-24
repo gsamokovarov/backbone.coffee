@@ -553,7 +553,7 @@ do (root = this) ->
 
     # Get a model from the set by id.
     get: (obj) ->
-      @_byId[if obj.id? then obj.id else obj.cid or obj] unless obj?
+      @_byId[if obj.id? then obj.id else obj.cid or obj] if obj?
 
     # Reset all internal state. Called when the collection is reset.
     _reset: ->
