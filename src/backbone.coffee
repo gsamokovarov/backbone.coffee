@@ -388,7 +388,7 @@ do (root = this) ->
         if _.isObject(serverAttrs) and !@set(serverAttrs, options)
           return false
         success? model, resp, options
-        model.trigger 'sync', @, resp, options
+        @trigger 'sync', @, resp, options
 
       wrapError @, options
 
@@ -470,9 +470,9 @@ do (root = this) ->
     constructor: (models, options = {}) ->
       @model = options.model if options.model
       comparator = options.comparator if options.comparator isnt undefined
-      @_reset()
-      @initialize.apply @, arguments
-      @reset models, _.extend({silent: true}, options) if models
+      @_reset?()
+      @initialize?.apply @, arguments
+      @reset? models, _.extend({silent: true}, options) if models
 
     _.extend @::, Events
 
