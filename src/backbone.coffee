@@ -599,3 +599,4 @@ do (root = this) ->
     error = options.error
     options.error = (resp) ->
       error model, resp, options if error
+      model.trigger 'error', model, resp, options
