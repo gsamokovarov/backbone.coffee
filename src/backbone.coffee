@@ -270,14 +270,8 @@ do (root = this) ->
       # For each `set` attribute, update or delete the current value.
       for attr, val of attrs
         changes.push attr unless _.isEqual current[attr], val
-        if _.isEqual prev[attr], val
-          delete @changed[attr]
-        else
-          @changed[attr] = val
-        if unset
-          delete current[attr]
-        else
-          current[attr] = val
+        if _.isEqual prev[attr], val then delete @changed[attr] else @changed[attr] = val
+        if unset then delete current[attr] else current[attr] = val
 
       # Trigger all relevant attribute changes.
       unless !silent
