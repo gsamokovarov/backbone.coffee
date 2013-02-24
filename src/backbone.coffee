@@ -599,6 +599,53 @@ do (root = this) ->
     get: (obj) ->
       @_byId[if obj.id? then obj.id else obj.cid or obj] if obj?
 
+    # Get the model at the given index.
+    at: (index) ->
+      @models[index]
+
+    # Return models with matching attributes. Useful for simple cases of
+    # `filter`.
+    where: (attrs, first) ->
+      if _.isEmpty attrs
+        return if first then undefined else []
+      @[if first then 'find' else 'filter'] ->
+        for key of attrs
+          return false unless attrs[key] is model.get key
+        true
+
+    # Return the first model with matching attributes. Useful for simple cases
+    # of `find`.
+    findWhere: (attrs) ->
+      @where attrs, true
+
+    # Force the collection to re-sort itself. You don't need to call this under
+    # normal circumstances, as the set will maintain sort order as each item
+    # is added.
+    sort: (options = {}) ->
+      unless @comparator
+        throw new Error 'Cannot sort a set without a comparator'
+
+      # Run sort based on type of `comparator`.
+      if _.isString(@comparator) or @comparator.length is 1
+        @models = @sortBy(@comparator, @)
+      else
+        @models.sort _.bind(@comparator, @)
+
+      @trigger 'sort', @, options unless options.silent
+      @
+
+    # Pluck an attribute from each model in the collection.
+    pluck: (attr) ->
+      _.invoke @models, 'get', attr
+
+    # Smartly update a collection with a change set of models, adding,
+    # removing, and merging as necessary.
+    update: (models, options) ->
+      options = _.extend {merge: true, remove: true}, options
+      models = @parse models, options if options.parse
+      @add models, options
+      @
+
     # Reset all internal state. Called when the collection is reset.
     _reset: ->
       @length = 0
