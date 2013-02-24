@@ -380,7 +380,7 @@ do (root = this) ->
         # Ensure attributes are restored during synchronous saves.
         @attributes = attributes
         serverAttrs = @parse resp, options
-        serverAttrs = _.extend (attrs || {}), serverAttrs if options.wait
+        serverAttrs = _.extend(attrs || {}, serverAttrs) if options.wait
         if _.isObject(serverAttrs) and !@set(serverAttrs, options)
           return false
         success? model, resp, options
@@ -500,6 +500,80 @@ do (root = this) ->
       @length = 0
       @models = []
       @_byId  = {}
+
+  # Backbone.sync
+  # -------------
+
+  # Map from CRUD to HTTP for our default `Backbone.sync` implementation.
+  methodMap =
+    create: 'POST'
+    update: 'PUT'
+    patch:  'PATCH'
+    delete: 'DELETE'
+    read:   'GET'
+
+  # Override this function to change the manner in which Backbone persists
+  # models to the server. You will be passed the type of request, and the
+  # model in question. By default, makes a RESTful Ajax request
+  # to the model's `url()`. Some possible customizations could be:
+  #
+  # * Use `setTimeout` to batch rapid-fire updates into a single request.
+  # * Send up the models as XML instead of JSON.
+  # * Persist models via WebSockets instead of Ajax.
+  #
+  # Turn on `Backbone.emulateHTTP` in order to send `PUT` and `DELETE` requests
+  # as `POST`, with a `_method` parameter containing the true HTTP method,
+  # as well as all requests with the body as `application/x-www-form-urlencoded`
+  # instead of `application/json` with the model in a param named `model`.
+  # Useful when interfacing with server-side languages like **PHP** that make
+  # it difficult to read the body of `PUT` requests.
+  Backbone.sync = (method, model, options = {}) ->
+    type = methodMap[method]
+
+    # Default options, unless specified.
+    _.defaults options,
+      emulateHTTP: Backbone.emulateHTTP
+      emulateJSON: Backbone.emulateJSON
+
+    # Default JSON-request options.
+    params = type: type, dataType: 'json'
+
+    # Ensure that we have a URL.
+    unless options.url
+      params.url = _.result(model, 'url') or urlError()
+
+    # Ensure that we have the appropriate request data.
+    if !options.data? and model and (method is 'create' or method is 'update' or method is 'patch')
+      params.contentType = 'application/json'
+      params.data = JSON.stringify(options.attrs or model.toJSON(options))
+
+    # For older servers, emulate JSON by encoding the request into an HTML-form.
+    if options.emulateJSON
+      params.contentType = 'application/x-www-form-urlencoded'
+      params.data = if params.data then model: params.data else {}
+
+    # For older servers, emulate HTTP by mimicking the HTTP method with `_method`
+    # And an `X-HTTP-Method-Override` header.
+    if options.emulateHTTP and (type is 'PUT' or type is 'DELETE' or type is 'PATCH')
+      params.type = 'POST'
+      params.data._method = type if options.emulateJSON
+      beforeSend = options.beforeSend
+      options.beforeSend = (xhr) ->
+        xhr.setRequestHeader 'X-HTTP-Method-Override', type
+        return beforeSend.apply @, arguments if beforeSend
+
+    # Don't process data on a non-GET request.
+    unless params.type is 'GET' or options.emulateJSON
+      params.processData = false
+
+    # Make the request, allowing the user to override any Ajax options.
+    xhr = options.xhr = Backbone.ajax _.extend(params, options)
+    model.trigger 'request', model, xhr, options
+    xhr
+
+  # Set the default implementation of `Backbone.ajax` to proxy through to `$`.
+  Backbone.ajax = ->
+    Backbone.$.ajax.apply Backbone.$, arguments
 
   # Helpers
   # -------
