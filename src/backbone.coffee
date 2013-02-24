@@ -274,7 +274,7 @@ do (root = this) ->
         if unset then delete current[attr] else current[attr] = val
 
       # Trigger all relevant attribute changes.
-      unless !silent
+      unless silent
         @_pending = true if changes.length
         for change in changes
           @trigger "change:#{change}", @, current[change], options
