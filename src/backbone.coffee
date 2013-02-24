@@ -383,7 +383,7 @@ do (root = this) ->
         serverAttrs = _.extend(attrs || {}, serverAttrs) if options.wait
         if _.isObject(serverAttrs) and !@set(serverAttrs, options)
           return false
-        success? model, resp, options
+        success? @, resp, options
         @trigger 'sync', @, resp, options
 
       wrapError @, options
@@ -407,8 +407,8 @@ do (root = this) ->
 
       options.success = (resp) =>
         destroy() if options.wait or @isNew()
-        success?(model, resp, options)
-        @trigger 'sync', model, resp, options unless @isNew()
+        success? @, resp, options
+        @trigger 'sync', @, resp, options unless @isNew()
 
       if @isNew()
         options.success()
