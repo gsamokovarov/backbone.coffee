@@ -490,6 +490,67 @@ do (root = this) ->
       Backbone.sync.apply @, arguments
 
     # Add a model, or list of models to the set.
+    add: (models, options = {}) ->
+      models = if _.isArray models then models.slice() else [models]
+      add = []
+      at = options.at
+      sort = @comparator and !at? and options.sort isnt false
+      sortAttr = if _.isString @comparator then @comparator else null
+      modelMap = {}
+
+      # Turn bare objects into model references, and prevent invalid models
+      # from being added.
+      for attrs in models
+        continue unless model = @_prepareModel attrs, options
+
+        # If a duplicate is found, prevent it from being added and
+        # optionally merge it into the existing model.
+        if existing = @get model
+          modelMap[existing.cid] = true
+          if options.merge
+            existing.set (if attrs is model then model.attributes else attrs), options
+            doSort = true if sort and !doSort and existing.hasChanged sortAttr
+          continue
+
+        continue if options.add is false
+
+        # This is a new model, push it to the `add` list.
+        add.push model
+
+        # Listen to added models' events, and index models for lookup by
+        # `id` and by `cid`.
+        model.on 'all', @_onModelEvent, @
+        @_byId[model.cid] = model
+        this._byId[model.id] = model if model?
+
+      if options.remove
+        remove = []
+        for model in models
+          remove.push model unless modelMap[model.cid]
+        @remove remove, options if remove.length
+
+      # See if sorting is needed, update `length` and splice in new models.
+      if add.length
+        doSort = true if sort
+        @length += add.length
+        if at?
+          splice.apply @models, [at, 0].concat(add)
+        else
+          push.apply @models, add
+
+      # Silently sort the collection if appropriate.
+      @sort silent: true if doSort
+
+      return @ if options.silent
+
+      # Trigger `add` events.
+      model.trigger 'add', model, @, options for model in add
+
+      # Trigger `sort` if the collection was sorted.
+      @trigger 'sort', @, options if doSort
+
+      @
+
     add: (models, options) ->
       for model in [].concat(models)
         model.collection = @
