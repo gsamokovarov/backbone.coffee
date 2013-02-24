@@ -575,6 +575,30 @@ do (root = this) ->
 
       model
 
+  # Underscore methods that we want to implement on the Collection.
+  methods = ['forEach', 'each', 'map', 'collect', 'reduce', 'foldl',
+    'inject', 'reduceRight', 'foldr', 'find', 'detect', 'filter', 'select',
+    'reject', 'every', 'all', 'some', 'any', 'include', 'contains', 'invoke',
+    'max', 'min', 'toArray', 'size', 'first', 'head', 'take', 'initial', 'rest',
+    'tail', 'drop', 'last', 'without', 'indexOf', 'shuffle', 'lastIndexOf',
+    'isEmpty', 'chain']
+
+  # Mix in each Underscore method as a proxy to `Collection#models`.
+  _.each methods, (method) ->
+    Collection::[method] = ->
+      args = slice.call arguments
+      args.unshift @models
+      _[method].apply _, args
+
+  # Underscore methods that take a property name as an argument.
+  attributeMethods = ['groupBy', 'countBy', 'sortBy']
+
+  # Use attributes instead of properties.
+  _.each attributeMethods, (method) ->
+    Collection::[method] = (value, context) ->
+      iterator = if _.isFunction value then value else (model) -> model.get value
+      return _[method] @models, iterator, context
+
   # Backbone.sync
   # -------------
 
