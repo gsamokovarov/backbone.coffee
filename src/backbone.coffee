@@ -761,6 +761,79 @@ do (root = this) ->
       iterator = if _.isFunction value then value else (model) -> model.get value
       _[method] @models, iterator, context
 
+  # Backbone.Router
+  # ---------------
+  #
+
+  # Cached regular expressions for matching named param parts and splatted
+  # parts of route strings.
+  optionalParam = /\((.*?)\)/g
+  namedParam    = /(\(\?)?:\w+/g
+  splatParam    = /\*\w+/g
+  escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g
+
+  # Routers map faux-URLs to actions, and fire events when routes are
+  # matched. Creating a new one sets its `routes` hash, if not set statically.
+  Router = class Backbone.Router
+
+    constructor: (options = {}) ->
+      @routes = options.routes if options.routes
+      @_bindRoutes()
+      @initialize.apply @, arguments
+
+    _.extend @::, Events
+
+    # Initialize is an empty function by default. Override it with your own
+    # initialization logic.
+    initialize: ->
+
+    # Manually bind a single named route to a callback. For example:
+    #
+    #     this.route('search/:query/p:num', 'search', function(query, num) {
+    #       ...
+    #     })
+    #
+    route: (route, name, callback = @[name]) ->
+      route = @_routeToRegExp route unless _.isRegExp route
+      Backbone.history.route route, (fragment) =>
+        args = @_extractParameters route, fragment
+        callback?.apply @, args
+        @trigger.apply @, ['route:' + name].concat(args)
+        @trigger 'route', name, args
+        Backbone.history.trigger 'route', @, name, args
+      @
+
+    # Simple proxy to `Backbone.history` to save a fragment into the history.
+    navigate: (fragment, options) ->
+      Backbone.history.navigate fragment, options
+      @
+
+    # Bind all defined routes to `Backbone.history`. We have to reverse the
+    # order of the routes here to support behavior where the most general
+    # routes can be defined at the bottom of the route map.
+    _bindRoutes: ->
+      return unless @routes
+      routes = _.keys @routes
+      @route route, @routes[route] while (route = routes.pop())?
+
+    # Convert a route string into a regular expression, suitable for matching
+    # against the current location hash.
+    _routeToRegExp: (route) ->
+      ///
+      ^#{
+      route
+        .replace(escapeRegExp, '\\$&')
+        .replace(optionalParam, '(?:$1)?')
+        .replace(namedParam, (match, optional) -> if optional then match else '([^\/]+)')
+        .replace(splatParam, '(.*?)')
+      }$
+      ///
+
+    # Given a route, and a URL fragment that it matches, return the array of
+    # extracted parameters.
+    _extractParameters: (route, fragment) ->
+      route.exec(fragment).slice(1)
+
   # Backbone.sync
   # -------------
 
@@ -848,7 +921,7 @@ do (root = this) ->
       @extend: extend
 
   # Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = extend
+  Model.extend = Collection.extend = Router.extend = extend
 
   # Throw an error when a URL is needed, and none is supplied.
   urlError = ->
