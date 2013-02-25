@@ -826,8 +826,7 @@ do (root = this) ->
         .replace(escapeRegExp, '\\$&')
         .replace(optionalParam, '(?:$1)?')
         .replace(namedParam, (match, optional) -> if optional then match else '([^\/]+)')
-        .replace(splatParam, '(.*?)')
-      }
+        .replace(splatParam, '(.*?)')}
       $///
 
     # Given a route, and a URL fragment that it matches, return the array of
