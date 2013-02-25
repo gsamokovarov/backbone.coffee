@@ -1104,7 +1104,7 @@ do (root = this) ->
         method = @[events[key]] unless _.isFunction method
         throw new Error "Method '#{events[key]}' does not exist" unless method
         match = key.match delegateEventSplitter
-        [eventName, selector] = match
+        [eventName, selector] = [match[1], match[2]]
         method = _.bind method, @
         eventName += '.delegateEvents' + @cid
         if selector is ''
