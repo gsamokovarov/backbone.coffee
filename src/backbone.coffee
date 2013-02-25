@@ -416,7 +416,7 @@ do (root = this) ->
       wrapError @, options
 
       xhr = @sync 'delete', @, options
-      destroy unless options.wait
+      destroy() unless options.wait
       xhr
 
     # Default URL for the model's representation on the server -- if you're
