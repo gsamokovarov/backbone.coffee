@@ -1102,7 +1102,7 @@ do (root = this) ->
       @undelegateEvents()
       for key, method of events
         method = events[key] unless _.isFunction method
-        throw new Error('Method "' + events[key] + '" does not exist') unless method
+        throw new Error "Method '#{events[key]}' does not exist" unless method
         match = key.match delegateEventSplitter
         [eventName, selector] = match
         method = _.bind method, @
