@@ -1101,7 +1101,7 @@ do (root = this) ->
       return @ unless events or events = _.result @, 'events'
       @undelegateEvents()
       for key, method of events
-        method = events[key] unless _.isFunction method
+        method = @[events[key]] unless _.isFunction method
         throw new Error "Method '#{events[key]}' does not exist" unless method
         match = key.match delegateEventSplitter
         [eventName, selector] = match
@@ -1139,7 +1139,7 @@ do (root = this) ->
         attrs = _.extend {}, _.result(@, 'attributes')
         attrs.id = _.result @, 'id' if @id
         attrs['class'] = _.result @, 'className' if @className
-        $el = Backbone.$('<' + _.result(@, 'tagName') + '>').attr(attrs)
+        $el = Backbone.$("<#{_.result(@, 'tagName')}>").attr(attrs)
         @setElement $el, false
 
   # Backbone.sync
