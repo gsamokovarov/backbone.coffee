@@ -525,7 +525,7 @@ do (root = this) ->
 
       if options.remove
         remove = []
-        for model in models
+        for model in @models
           remove.push model unless modelMap[model.cid]
         @remove remove, options if remove.length
 
