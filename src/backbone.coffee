@@ -991,7 +991,7 @@ do (root = this) ->
       fragment = @getFragment fragment or ''
       return if @fragment is fragment
       @fragment = fragment
-      url = "#{@root}fragment"
+      url = @root + fragment
 
       # If pushState is available, we use it to set the fragment as a real URL.
       if @_hasPushState
