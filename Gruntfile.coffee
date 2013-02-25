@@ -5,19 +5,17 @@ module.exports = (grunt) ->
     concat:
       dist:
         src: ['lib/backbone.js']
-        dest: 'dist/backbone.js'
+        dest: 'backbone.js'
 
     uglify:
       dist:
         src: 'lib/backbone.js',
-        dest: 'dist/backbone.min.js'
+        dest: 'backbone.min.js'
 
     qunit:
       all: ['test/index.html']
 
     coffee:
-      options:
-        bare: true
       glob_to_multiple:
         expand: true
         cwd: 'src'
