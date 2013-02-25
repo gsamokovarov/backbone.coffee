@@ -465,7 +465,7 @@ do (root = this) ->
 
     constructor: (models, options = {}) ->
       @model = options.model if options.model
-      @comparator = options.comparator if options.comparator isnt undefined
+      @comparator = options.comparator unless options.comparator is undefined
       @_reset()
       @initialize.apply @, arguments
       @reset models, _.extend({silent: true}, options) if models
@@ -652,7 +652,7 @@ do (root = this) ->
     reset: (models, options) ->
       options = if options then _.clone options else {}
       models = @parse models, options if options.parse
-      @_removeReference model for model in models or []  # XXX
+      @_removeReference model for model in @models
       options.previousModels = @models
       @_reset()
       @add models, _.extend({silent: true}, options) if models
