@@ -909,7 +909,7 @@ do (root = this) ->
       oldIE             = isExplorer.exec(navigator.userAgent.toLowerCase()) and (!docMode or docMode <= 7)
 
       # Normalize root to always include a leading and trailing slash.<F2>
-      @root = "/#{root}/".replace rootStripper, '/'
+      @root = "/#{@root}/".replace rootStripper, '/'
 
       if oldIE and @_wantsHashChange
         @iframe = Backbone.$('<iframe src="javascript:0" tabindex="-1" />').hide().appendTo('body')[0].contentWindow
