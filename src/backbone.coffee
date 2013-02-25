@@ -821,15 +821,14 @@ do (root = this) ->
     # Convert a route string into a regular expression, suitable for matching
     # against the current location hash.
     _routeToRegExp: (route) ->
-      ///
-      ^#{
-      route
+      ///^
+      #{route
         .replace(escapeRegExp, '\\$&')
         .replace(optionalParam, '(?:$1)?')
         .replace(namedParam, (match, optional) -> if optional then match else '([^\/]+)')
         .replace(splatParam, '(.*?)')
-      }$
-      ///
+      }
+      $///
 
     # Given a route, and a URL fragment that it matches, return the array of
     # extracted parameters.
@@ -1028,6 +1027,122 @@ do (root = this) ->
   # Create the default Backbone.history.
   Backbone.history = new History
 
+  # Backbone.View
+  # -------------
+
+  # Cached regex to split keys for `delegate`.
+  delegateEventSplitter = /^(\S+)\s*(.*)$/
+
+  # List of view options to be merged as properties.
+  viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events']
+
+  # Creating a Backbone.View creates its initial element outside of the DOM,
+  # if an existing element is not provided...
+  View = class Backbone.View
+
+    constructor: (options) ->
+      @cid = _.uniqueId 'view'
+      @_configure options || {}
+      @_ensureElement()
+      @initialize.apply @, arguments
+      @delegateEvents()
+
+    _.extend @::, Events
+
+    # The default `tagName` of a View's element is `"div"`.
+    tagName: 'div'
+
+    # jQuery delegate for element lookup, scoped to DOM elements within the
+    # current view. This should be prefered to global lookups where possible.
+    $: (selector) ->
+      @$el.find selector
+
+    # Initialize is an empty function by default. Override it with your own
+    # initialization logic.
+    initialize: ->
+
+    # **render** is the core function that your view should override, in order
+    # to populate its element (`this.el`), with the appropriate HTML. The
+    # convention is for **render** to always return `this`.
+    render: ->
+      @
+
+    # Remove this view by taking the element out of the DOM, and removing any
+    # applicable Backbone.Events listeners.
+    remove: ->
+      @$el.remove()
+      @stopListening()
+      @
+
+    # Change the view's element (`this.el` property), including event
+    # re-delegation.
+    setElement: (element, delegate) ->
+      @undelegateEvents() if @$el
+      @$el = if element instanceof Backbone.$ then element else Backbone.$ element
+      @el = @$el[0]
+      @delegateEvents() if delegate isnt false
+      @
+
+    # Set callbacks, where `this.events` is a hash of
+    #
+    # *{"event selector": "callback"}*
+    #
+    #     {
+    #       'mousedown .title':  'edit',
+    #       'click .button':     'save'
+    #       'click .open':       function(e) { ... }
+    #     }
+    #
+    # pairs. Callbacks will be bound to the view, with `this` set properly.
+    # Uses event delegation for efficiency.
+    # Omitting the selector binds the event to `this.el`.
+    # This only works for delegate-able events: not `focus`, `blur`, and
+    # not `change`, `submit`, and `reset` in Internet Explorer.
+    delegateEvents: (events) ->
+      return @ unless events or events = _.result @, 'events'
+      @undelegateEvents()
+      for key, method of events
+        method = events[key] unless _.isFunction method
+        throw new Error('Method "' + events[key] + '" does not exist') unless method
+        match = key.match delegateEventSplitter
+        [eventName, selector] = match
+        method = _.bind method, @
+        eventName += '.delegateEvents' + @cid
+        if selector is ''
+          @$el.on eventName, method
+        else
+          @$el.on eventName, selector, method
+      @
+
+    # Clears all callbacks previously bound to the view with `delegateEvents`.
+    # You usually don't need to use this, but may wish to if you have multiple
+    # Backbone views attached to the same DOM element.
+    undelegateEvents: ->
+      @$el.off '.delegateEvents' + @cid
+      @
+
+    # Performs the initial configuration of a View with a set of options.
+    # Keys with special meaning *(model, collection, id, className)*, are
+    # attached directly to the view.
+    _configure: (options) ->
+      options = _.extend {}, _.result(@, 'options'), options if @options
+      _.extend @, _.pick(options, viewOptions)
+      @options = options
+
+    # Ensure that the View has a DOM element to render into.
+    # If `this.el` is a string, pass it through `$()`, take the first
+    # matching element, and re-assign it to `el`. Otherwise, create
+    # an element from the `id`, `className` and `tagName` properties.
+    _ensureElement: ->
+      if @el
+        @setElement _.result(@, 'el'), false
+      else
+        attrs = _.extend {}, _.result(@, 'attributes')
+        attrs.id = _.result @, 'id' if @id
+        attrs['class'] = _.result @, 'className' if @className
+        $el = Backbone.$('<' + _.result(@, 'tagName') + '>').attr(attrs)
+        @setElement $el, false
+
   # Backbone.sync
   # -------------
 
@@ -1115,7 +1230,7 @@ do (root = this) ->
       @extend: extend
 
   # Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = Router.extend = History.extend = extend
+  Model.extend = Collection.extend = Router.extend = View.extend =  History.extend = extend
 
   # Throw an error when a URL is needed, and none is supplied.
   urlError = ->
