@@ -928,13 +928,13 @@ do (root = this) ->
       # opened by a non-pushState browser.
       @fragment = fragment
       loc = @location
-      atRoot = loc.pathname.replace(/[^\/]$/, '$&/') is root
+      atRoot = loc.pathname.replace(/[^\/]$/, '$&/') is @root
 
       # If we've started off with a route from a `pushState`-enabled browser,
       # but we're currently in a browser that doesn't support it...
       if @_wantsHashChange and @_wantsPushState and !@_hasPushState and !atRoot
         @fragment = @getFragment null, true
-        @location.replace "#{@root}#{@location.search}##{@fragment}"
+        @location.replace @root + @location.search + '#' + @fragment
         # Return immediately as browser will do redirect to new url
         return true
 
@@ -942,7 +942,7 @@ do (root = this) ->
       # in a browser where it could be `pushState`-based instead...
       else if @_wantsPushState and @_hasPushState and atRoot and loc.hash
         @fragment = @getHash().replace routeStripper, ''
-        @istory.replaceState {}, document.title, @root + @fragment + loc.search
+        @history.replaceState {}, document.title, @root + @fragment + loc.search
 
       @loadUrl() unless @options.silent
 
@@ -963,7 +963,7 @@ do (root = this) ->
     checkUrl: (e) ->
       current = @getFragment()
       current = @getFragment @getHash(@iframe) if current is @fragment and @iframe
-      return if current is @fragment
+      return false if current is @fragment
       @navigate current if @iframe
       @loadUrl() or @loadUrl @getHash()
 
