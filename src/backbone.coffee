@@ -1229,7 +1229,7 @@ do (root = this) ->
       @extend: extend
 
   # Set up inheritance for the model, collection, router, view and history.
-  Model.extend = Collection.extend = Router.extend = View.extend =  History.extend = extend
+  Model.extend = Collection.extend = Router.extend = View.extend = History.extend = extend
 
   # Throw an error when a URL is needed, and none is supplied.
   urlError = ->
