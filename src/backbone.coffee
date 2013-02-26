@@ -1223,7 +1223,7 @@ do (root = this) ->
   # Similar to `goog.inherits`, but uses a hash of prototype properties and
   # class properties to be extended.
   extend = (protoProps, staticProps) ->
-    class Type extends @
+    class extends @
       _.extend @, staticProps
       _.extend @::, protoProps
       @extend: extend
