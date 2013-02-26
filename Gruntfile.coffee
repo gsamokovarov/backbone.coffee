@@ -2,14 +2,8 @@ module.exports = (grunt) ->
   grunt.initConfig
     pkg: grunt.file.readJSON('package.json')
 
-    concat:
-      dist:
-        src: ['lib/backbone.js']
-        dest: 'backbone.js'
-
     uglify:
       dist:
-        src: 'lib/backbone.js',
         dest: 'backbone.min.js'
 
     qunit:
@@ -23,7 +17,6 @@ module.exports = (grunt) ->
         dest: 'lib'
         ext: '.js'
 
-
     watch:
       src:
         files: ['src/**/*.coffee']
@@ -32,10 +25,9 @@ module.exports = (grunt) ->
         files: ['lib/**/*.js']
         tasks: ['qunit']
 
-  grunt.loadNpmTasks 'grunt-contrib-concat'
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-qunit'
   grunt.loadNpmTasks 'grunt-contrib-watch'
 
-  grunt.registerTask 'default', ['coffee', 'concat', 'uglify', 'qunit']
+  grunt.registerTask 'default', ['coffee', 'uglify', 'qunit']
