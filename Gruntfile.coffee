@@ -1,6 +1,6 @@
 module.exports = (grunt) ->
   grunt.initConfig
-    pkg: grunt.file.readJSON('package.json')
+    pkg: grunt.file.readJSON 'package.json'
 
     uglify:
       dist:
@@ -25,9 +25,15 @@ module.exports = (grunt) ->
         files: ['lib/**/*.js']
         tasks: ['qunit']
 
+    docco:
+      src: ['src/*.coffee']
+      options:
+        output: 'docs/'
+
   grunt.loadNpmTasks 'grunt-contrib-coffee'
   grunt.loadNpmTasks 'grunt-contrib-uglify'
   grunt.loadNpmTasks 'grunt-contrib-qunit'
   grunt.loadNpmTasks 'grunt-contrib-watch'
+  grunt.loadNpmTasks 'grunt-docco'
 
-  grunt.registerTask 'default', ['coffee', 'uglify', 'qunit']
+  grunt.registerTask 'default', ['coffee', 'uglify', 'qunit', 'docco']
