@@ -60,10 +60,14 @@ do (root = this) ->
   # in terms of the existing API.
   eventsApi = (obj, action, name, rest) ->
     return true unless name
+
+    # Handle event maps.
     if typeof name is 'object'
       for key, value of name
         obj[action].apply obj, [key, value].concat(rest)
       false
+
+    # Handle space separated event names.
     else if eventSplitter.test name
       for name in name.split eventSplitter
         obj[action].apply obj, [name].concat(rest)
@@ -98,7 +102,7 @@ do (root = this) ->
     # to a `callback` function. Passing `"all"` will bind the callback to
     # all events fired.
     on: (name, callback, context) ->
-      return @ if !eventsApi(@, 'on', name, [callback, context]) or !callback
+      return @ unless eventsApi(@, 'on', name, [callback, context]) and callback
       @_events ||= {}
       events = @_events[name] ||= []
       events.push callback: callback, context: context, ctx: context or @
@@ -107,7 +111,7 @@ do (root = this) ->
     # Bind events to only be triggered a single time. After the first time
     # the callback is invoked, it will be removed.
     once: (name, callback, context) ->
-      return @ if !eventsApi(@, 'once', name, [callback, context]) or !callback
+      return @ unless eventsApi(@, 'once', name, [callback, context]) and callback
       self = @
       once = _.once ->
         self.off name, once
@@ -120,8 +124,8 @@ do (root = this) ->
     # callbacks for the event. If `name` is null, removes all bound
     # callbacks for all events.
     off: (name, callback, context) ->
-      return @ if !@_events or !eventsApi @, 'off', name, [callback, context]
-      if !name and !callback and !context
+      return @ unless @_events and eventsApi @, 'off', name, [callback, context]
+      unless name or callback or context
         @_events = {}
         return @
 
@@ -161,7 +165,7 @@ do (root = this) ->
       callback = @ if typeof name is 'object'
       (listeners = {})[obj._listenerId] = obj if obj
       for id of listeners
-        listeners[id].off(name, callback, @)
+        listeners[id].off name, callback, @
         delete @_listeners[id] if deleteListener
       @
 
@@ -178,8 +182,6 @@ do (root = this) ->
       callback = @ if typeof name is 'object'
       obj[implementation] name, callback, @
       @
-
-
 
   # Aliases for backwards compatibility.
   Events.bind   = Events.on
