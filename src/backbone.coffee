@@ -1011,7 +1011,7 @@ do (root = this) ->
       else
         return @location.assign url
 
-      @loadUrl(fragment) if options.trigger
+      @loadUrl fragment if options.trigger
 
     # Update the hash location, either replacing the current entry, or adding
     # a new one to the browser history.
