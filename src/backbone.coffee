@@ -130,16 +130,15 @@ do (root = this) ->
         return @
 
       names = if name then [name] else _.keys @_events
-      for name in names
-        if events = @_events[name]
-          @_events[name] = retain = []
-          if callback or context
-            for ev in events
-              if ((callback and callback isnt ev.callback and
-                                callback isnt ev.callback._callback) or
-                  (context and context isnt ev.context))
-                retain.push ev
-          delete @_events[name] unless retain.length
+      for name in names when events = @_events[name]
+        @_events[name] = retain = []
+        if callback or context
+          for ev in events
+            if ((callback and callback isnt ev.callback and
+                              callback isnt ev.callback._callback) or
+                (context and context isnt ev.context))
+              retain.push ev
+        delete @_events[name] unless retain.length
       this
 
     # Trigger one or many events, firing all bound callbacks. Callbacks are
@@ -328,8 +327,7 @@ do (root = this) ->
         return if @hasChanged() then _.clone @changed else false
       changed = false
       old = if @_changing then @_previousAttributes else @attributes
-      for attr, val of diff
-        continue if _.isEqual old[attr], val
+      for attr, val of diff when !_.isEqual old[attr], val
         (changed ||= {})[attr] = val
       changed
 
@@ -511,9 +509,7 @@ do (root = this) ->
 
       # Turn bare objects into model references, and prevent invalid models
       # from being added.
-      for attrs in models
-        continue unless model = @_prepareModel attrs, options
-
+      for attrs in models when model = @_prepareModel attrs, options
         # If a duplicate is found, prevent it from being added and
         # optionally merge it into the existing model.
         if existing = @get model
@@ -536,8 +532,8 @@ do (root = this) ->
 
       if options.remove
         remove = []
-        for model in @models
-          remove.push model unless modelMap[model.cid]
+        for model in @models when !modelMap[model.cid]
+          remove.push model
         @remove remove, options if remove.length
 
       # See if sorting is needed, update `length` and splice in new models.
@@ -565,8 +561,7 @@ do (root = this) ->
     # Remove a model, or a list of models from the set.
     remove: (models, options = {}) ->
       models = if _.isArray models then models.slice() else [models]
-      for model in models
-        continue unless model = @get model
+      for model in models when model = @get model
         delete @_byId[model.id]
         delete @_byId[model.cid]
         index = @indexOf model
