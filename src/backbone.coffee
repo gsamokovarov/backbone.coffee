@@ -201,7 +201,7 @@ do (root = this) ->
       attrs = attributes or {}
       @cid = _.uniqueId 'c'
       @attributes = {}
-      @collection = options.collection if options?.collection
+      {@collection} = options if options?.collection
       attrs = @parse(attrs, options) or {} if options?.parse
       if defaults = _.result this, 'defaults'
         attrs = _.defaults {}, attrs, defaults
@@ -263,11 +263,10 @@ do (root = this) ->
       return false unless @_validate attrs, options
 
       # Extract attributes and options.
-      unset      = options.unset
-      silent     = options.silent
-      changes    = []
-      changing   = @_changing
-      @_changing = true
+      {unset, silent} = options
+      changes         = []
+      changing        = @_changing
+      @_changing      = true
 
       unless changing
         @_previousAttributes = _.clone @attributes
@@ -348,7 +347,7 @@ do (root = this) ->
     fetch: (options) ->
       options = if options? then _.clone options else {}
       options.parse = true if options.parse is undefined
-      success = options.success
+      {success} = options
       options.success = (resp) =>
         return false unless @set @parse(resp, options), options
         success? this, resp, options
@@ -384,7 +383,7 @@ do (root = this) ->
       # After a successful server-side save, the client is (optionally)
       # updated with the server-side state.
       options.parse = true if options.parse is undefined
-      success = options.success
+      {success} = options
       options.success = (resp) =>
         # Ensure attributes are restored during synchronous saves.
         @attributes = attributes
@@ -411,7 +410,7 @@ do (root = this) ->
     # If `wait: true` is passed, waits for the server to respond before removal.
     destroy: (options) ->
       options = if options? then _.clone options else {}
-      success = options.success
+      {success} = options
       destroy = => @trigger 'destroy', this, @collection, options
 
       options.success = (resp) =>
@@ -473,8 +472,8 @@ do (root = this) ->
   Collection = class Backbone.Collection
 
     constructor: (models, options = {}) ->
-      @model = options.model if options.model
-      @comparator = options.comparator unless options.comparator is undefined
+      {@model} = options if options.model
+      {@comparator} = options unless options.comparator is undefined
       @_reset()
       @initialize.apply this, arguments
       @reset models, _.extend({silent: true}, options) if models
@@ -502,7 +501,7 @@ do (root = this) ->
     add: (models, options = {}) ->
       models = if _.isArray models then models.slice() else [models]
       add = []
-      at = options.at
+      {at} = options
       sort = @comparator and !at? and options.sort isnt false
       sortAttr = if _.isString @comparator then @comparator else null
       modelMap = {}
@@ -671,7 +670,7 @@ do (root = this) ->
     fetch: (options) ->
       options = if options then _.clone options else {}
       options.parse = true if options.parse is undefined
-      success = options.success
+      {success} = options
       options.success = (resp) =>
         @[if options.update then 'update' else 'reset'] resp, options
         success? this, resp, options
@@ -686,7 +685,7 @@ do (root = this) ->
       options = if options then _.clone options else {}
       return false unless model = @_prepareModel(model, options)
       @add model, options unless options.wait
-      success = options.success
+      {success} = options
       options.success = (resp) =>
         @add model, options if options.wait
         success? model, resp, options
@@ -783,7 +782,7 @@ do (root = this) ->
   Router = class Backbone.Router
 
     constructor: (options = {}) ->
-      @routes = options.routes if options.routes
+      {@routes} = options if options.routes
       @_bindRoutes()
       @initialize.apply this, arguments
 
@@ -1204,7 +1203,7 @@ do (root = this) ->
     if options.emulateHTTP and (type is 'PUT' or type is 'DELETE' or type is 'PATCH')
       params.type = 'POST'
       params.data._method = type if options.emulateJSON
-      beforeSend = options.beforeSend
+      {beforeSend} = options
       options.beforeSend = (xhr) ->
         xhr.setRequestHeader 'X-HTTP-Method-Override', type
         return beforeSend.apply this, arguments if beforeSend
@@ -1243,7 +1242,7 @@ do (root = this) ->
 
   # Wrap an optional error callback with a fallback error event.
   wrapError = (model, options) ->
-    error = options.error
+    {error} = options
     options.error = (resp) ->
       error model, resp, options if error
       model.trigger 'error', model, resp, options
