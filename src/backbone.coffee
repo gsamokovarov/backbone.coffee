@@ -36,7 +36,7 @@ do (root = this) ->
   # to its previous owner. Returns a reference to this Backbone object.
   Backbone.noConflict = ->
     root.Backbone = previousBackbone
-    @
+    this
 
   # Turn on `emulateHTTP` to support legacy HTTP servers. Setting this option
   # will fake `"PUT"` and `"DELETE"` requests via the `_method` parameter and
@@ -102,20 +102,20 @@ do (root = this) ->
     # to a `callback` function. Passing `"all"` will bind the callback to
     # all events fired.
     on: (name, callback, context) ->
-      return @ unless eventsApi(@, 'on', name, [callback, context]) and callback
+      return this unless eventsApi(this, 'on', name, [callback, context]) and callback
       @_events ||= {}
       events = @_events[name] ||= []
-      events.push callback: callback, context: context, ctx: context or @
-      @
+      events.push callback: callback, context: context, ctx: context or this
+      this
 
     # Bind events to only be triggered a single time. After the first time
     # the callback is invoked, it will be removed.
     once: (name, callback, context) ->
-      return @ unless eventsApi(@, 'once', name, [callback, context]) and callback
-      self = @
+      return this unless eventsApi(this, 'once', name, [callback, context]) and callback
+      self = this
       once = _.once ->
         self.off name, once
-        callback.apply @, arguments
+        callback.apply this, arguments
       once._callback = callback
       @on name, once, context
 
@@ -124,7 +124,7 @@ do (root = this) ->
     # callbacks for the event. If `name` is null, removes all bound
     # callbacks for all events.
     off: (name, callback, context) ->
-      return @ unless @_events and eventsApi @, 'off', name, [callback, context]
+      return this unless @_events and eventsApi this, 'off', name, [callback, context]
       unless name or callback or context
         @_events = {}
         return @
@@ -140,34 +140,34 @@ do (root = this) ->
                   (context and context isnt ev.context))
                 retain.push ev
           delete @_events[name] unless retain.length
-      @
+      this
 
     # Trigger one or many events, firing all bound callbacks. Callbacks are
     # passed the same arguments as `trigger` is, apart from the event name
     # (unless you're listening on `"all"`, which will cause your callback to
     # receive the true name of the event as the first argument).
     trigger: (name) ->
-      return @ unless @_events
+      return this unless @_events
       args = slice.call arguments, 1
-      return @ unless eventsApi @, 'trigger', name, args
+      return this unless eventsApi this, 'trigger', name, args
       events = @_events[name]
       allEvents = @_events.all
       triggerEvents events, args if events
       triggerEvents allEvents, arguments if allEvents
-      @
+      this
 
     # Tell this object to stop listening to either specific events ... or
     # to every object it's currently listening to.
     stopListening: (obj, name, callback) ->
       listeners = @_listeners
-      return @ unless listeners
+      return this unless listeners
       deleteListener = !name and !callback
-      callback = @ if typeof name is 'object'
+      callback = this if typeof name is 'object'
       (listeners = {})[obj._listenerId] = obj if obj
       for id of listeners
-        listeners[id].off name, callback, @
+        listeners[id].off name, callback, this
         delete @_listeners[id] if deleteListener
-      @
+      this
 
   listenMethods = listenTo: 'on', listenToOnce: 'once'
 
@@ -179,9 +179,9 @@ do (root = this) ->
       listeners = @_listeners ||= {}
       id = obj._listenerId ||= _.uniqueId 'l'
       listeners[id] = obj
-      callback = @ if typeof name is 'object'
-      obj[implementation] name, callback, @
-      @
+      callback = this if typeof name is 'object'
+      obj[implementation] name, callback, this
+      this
 
   # Aliases for backwards compatibility.
   Events.bind   = Events.on
@@ -204,13 +204,13 @@ do (root = this) ->
       @attributes = {}
       @collection = options.collection if options?.collection
       attrs = @parse(attrs, options) or {} if options?.parse
-      if defaults = _.result @, 'defaults'
+      if defaults = _.result this, 'defaults'
         attrs = _.defaults {}, attrs, defaults
       @set attrs, options
       @changed = {}
-      @initialize.apply @, arguments
+      @initialize.apply this, arguments
 
-    _.extend @::, Events
+    _.extend @prototype, Events
 
     # A hash of attributes whose current and previous value differ.
     changed: null
@@ -232,7 +232,7 @@ do (root = this) ->
 
     # Proxy `Backbone.sync` by default.
     sync: ->
-      Backbone.sync.apply @, arguments
+      Backbone.sync.apply this, arguments
 
     # Get the value of an attribute.
     get: (attr) ->
@@ -250,7 +250,7 @@ do (root = this) ->
     # Set a hash of model attributes on the object, firing `"change"` unless
     # you choose to silence it.
     set: (key, val, options) ->
-      return @ unless key?
+      return this unless key?
 
       # Handle both `"key", value` and `{key: value}` -style arguments.
       if typeof key is 'object'
@@ -288,17 +288,17 @@ do (root = this) ->
       unless silent
         @_pending = true if changes.length
         for change in changes
-          @trigger "change:#{change}", @, current[change], options
+          @trigger "change:#{change}", this, current[change], options
 
-      return @ if changing
+      return this if changing
       unless silent
         while @_pending
           @_pending = false
-          @trigger 'change', @, options
+          @trigger 'change', this, options
 
       @_pending  = false
       @_changing = false
-      @
+      this
 
     # Remove an attribute from the model, firing `"change"` unless you choose
     # to silence it. `unset` is a noop if the attribute doesn't exist.
@@ -353,10 +353,10 @@ do (root = this) ->
       success = options.success
       options.success = (resp) =>
         return false unless @set @parse(resp, options), options
-        success? @, resp, options
-        @trigger 'sync', @, resp, options
-      wrapError @, options
-      @sync 'read', @, options
+        success? this, resp, options
+        @trigger 'sync', this, resp, options
+      wrapError this, options
+      @sync 'read', this, options
 
     # Set a hash of model attributes, and sync the model to the server.
     # If the server returns an attributes hash that differs, the model's
@@ -391,17 +391,17 @@ do (root = this) ->
         # Ensure attributes are restored during synchronous saves.
         @attributes = attributes
         serverAttrs = @parse resp, options
-        serverAttrs = _.extend(attrs || {}, serverAttrs) if options.wait
+        serverAttrs = _.extend(attrs or {}, serverAttrs) if options.wait
         if _.isObject(serverAttrs) and !@set(serverAttrs, options)
           return false
-        success? @, resp, options
-        @trigger 'sync', @, resp, options
+        success? this, resp, options
+        @trigger 'sync', this, resp, options
 
-      wrapError @, options
+      wrapError this, options
 
       method = if @isNew() then 'create' else if options.patch then 'patch' else 'update'
       options.attrs = attrs if method is 'patch'
-      xhr = @sync method, @, options
+      xhr = @sync method, this, options
 
       # Restore attributes.
       @attributes = attributes if attrs and options.wait
@@ -414,19 +414,19 @@ do (root = this) ->
     destroy: (options) ->
       options = if options? then _.clone options else {}
       success = options.success
-      destroy = => @trigger 'destroy', @, @collection, options
+      destroy = => @trigger 'destroy', this, @collection, options
 
       options.success = (resp) =>
         destroy() if options.wait or @isNew()
-        success? @, resp, options
-        @trigger 'sync', @, resp, options unless @isNew()
+        success? this, resp, options
+        @trigger 'sync', this, resp, options unless @isNew()
 
       if @isNew()
         options.success()
         return false
-      wrapError @, options
+      wrapError this, options
 
-      xhr = @sync 'delete', @, options
+      xhr = @sync 'delete', this, options
       destroy() unless options.wait
       xhr
 
@@ -434,7 +434,7 @@ do (root = this) ->
     # using Backbone's restful methods, override this to change the endpoint
     # that will be called.
     url: ->
-      base = _.result(@, 'urlRoot') or _.result(@collection, 'url') or urlError()
+      base = _.result(this, 'urlRoot') or _.result(@collection, 'url') or urlError()
       return base if @isNew()
       base + (if base.charAt(base.length - 1) is '/' then '' else '/') + encodeURIComponent(@id)
 
@@ -461,9 +461,9 @@ do (root = this) ->
     _validate: (attrs, options) ->
       return true unless options?.validate and @validate?
       attrs = _.extend {}, @attributes, attrs
-      error = @validationError = @validate(attrs, options) || null
+      error = @validationError = @validate(attrs, options) or null
       return true unless error
-      @trigger 'invalid', @, error, (options || {})
+      @trigger 'invalid', this, error, (options or {})
       false
 
   # Backbone.Collection
@@ -478,10 +478,10 @@ do (root = this) ->
       @model = options.model if options.model
       @comparator = options.comparator unless options.comparator is undefined
       @_reset()
-      @initialize.apply @, arguments
+      @initialize.apply this, arguments
       @reset models, _.extend({silent: true}, options) if models
 
-    _.extend @::, Events
+    _.extend @prototype, Events
 
     # The default model for a collection is just a **Backbone.Model**.
     # This should be overridden in most cases.
@@ -498,7 +498,7 @@ do (root = this) ->
 
     # Proxy `Backbone.sync` by default.
     sync: ->
-      Backbone.sync.apply @, arguments
+      Backbone.sync.apply this, arguments
 
     # Add a model, or list of models to the set.
     add: (models, options = {}) ->
@@ -530,7 +530,7 @@ do (root = this) ->
 
         # Listen to added models' events, and index models for lookup by
         # `id` and by `cid`.
-        model.on 'all', @_onModelEvent, @
+        model.on 'all', @_onModelEvent, this
         @_byId[model.cid] = model
         @_byId[model.id] = model if model?
 
@@ -552,15 +552,15 @@ do (root = this) ->
       # Silently sort the collection if appropriate.
       @sort silent: true if doSort
 
-      return @ if options.silent
+      return this if options.silent
 
       # Trigger `add` events.
-      model.trigger 'add', model, @, options for model in add
+      model.trigger 'add', model, this, options for model in add
 
       # Trigger `sort` if the collection was sorted.
-      @trigger 'sort', @, options if doSort
+      @trigger 'sort', this, options if doSort
 
-      @
+      this
 
     # Remove a model, or a list of models from the set.
     remove: (models, options = {}) ->
@@ -574,9 +574,9 @@ do (root = this) ->
         @length--
         unless options.silent
           options.index = index
-          model.trigger 'remove', model, @, options
+          model.trigger 'remove', model, this, options
         @_removeReference model
-      @
+      this
 
     # Add a model to the end of the collection.
     push: (model, options) ->
@@ -638,12 +638,12 @@ do (root = this) ->
 
       # Run sort based on type of `comparator`.
       if _.isString(@comparator) or @comparator.length is 1
-        @models = @sortBy(@comparator, @)
+        @models = @sortBy(@comparator, this)
       else
-        @models.sort _.bind(@comparator, @)
+        @models.sort _.bind(@comparator, this)
 
-      @trigger 'sort', @, options unless options.silent
-      @
+      @trigger 'sort', this, options unless options.silent
+      this
 
     # Pluck an attribute from each model in the collection.
     pluck: (attr) ->
@@ -667,7 +667,7 @@ do (root = this) ->
       options.previousModels = @models
       @_reset()
       @add models, _.extend({silent: true}, options) if models
-      @trigger 'reset', @, options unless options.silent
+      @trigger 'reset', this, options unless options.silent
       @
 
     # Fetch the default set of models for this collection, resetting the
@@ -679,10 +679,10 @@ do (root = this) ->
       success = options.success
       options.success = (resp) =>
         @[if options.update then 'update' else 'reset'] resp, options
-        success? @, resp, options
-        @trigger 'sync', @, resp, options
-      wrapError @, options
-      @sync 'read', @, options
+        success? this, resp, options
+        @trigger 'sync', this, resp, options
+      wrapError this, options
+      @sync 'read', this, options
 
     # Create a new instance of a model in this collection. Add the model to the
     # collection immediately, unless `wait: true` is passed, in which case we
@@ -716,20 +716,20 @@ do (root = this) ->
     # Prepare a model or hash of attributes to be added to this collection.
     _prepareModel: (attrs, options = {}) ->
       if attrs instanceof Model
-        attrs.collection = @ unless attrs.collection
+        attrs.collection = this unless attrs.collection
         return attrs
 
       options.collection = @
       model = new @model attrs, options
       unless model._validate attrs, options
-        @trigger 'invalid', @, attrs, options
+        @trigger 'invalid', this, attrs, options
         return false
 
       model
 
     # Internal method to remove a model's ties to a collection.
     _removeReference: (model) ->
-      delete model.collection if @ is model.collection
+      delete model.collection if this is model.collection
       model.off 'all', @_onModelEvent, @
 
     # Internal method called every time a model in the set fires an event.
@@ -742,7 +742,7 @@ do (root = this) ->
       if model and event is "change:#{model.idAttribute}"
         delete @_byId[model.previous model.idAttribute]
         @_byId[model.id] = model if model.id?
-      @trigger.apply @, arguments
+      @trigger.apply this, arguments
 
     sortedIndex: (model, value = @comparator, context) ->
       iterator = if _.isFunction value then value else (model) -> model.get value
@@ -790,7 +790,7 @@ do (root = this) ->
     constructor: (options = {}) ->
       @routes = options.routes if options.routes
       @_bindRoutes()
-      @initialize.apply @, arguments
+      @initialize.apply this, arguments
 
     _.extend @::, Events
 
@@ -808,10 +808,10 @@ do (root = this) ->
       route = @_routeToRegExp route unless _.isRegExp route
       Backbone.history.route route, (fragment) =>
         args = @_extractParameters route, fragment
-        callback?.apply @, args
-        @trigger.apply @, ['route:' + name].concat(args)
+        callback?.apply this, args
+        @trigger.apply this, ['route:' + name].concat(args)
         @trigger 'route', name, args
-        Backbone.history.trigger 'route', @, name, args
+        Backbone.history.trigger 'route', this, name, args
       @
 
     # Simple proxy to `Backbone.history` to save a fragment into the history.
@@ -865,18 +865,18 @@ do (root = this) ->
   History = class Backbone.History
 
     # Has the history handling already been started?
-    @started = false
+    @started: false
 
     constructor: ->
       @handlers = []
-      _.bindAll @, 'checkUrl'
+      _.bindAll this, 'checkUrl'
 
       # Ensure that `History` can be used outside of the browser.
       if window?
         @location = window.location
         @history = window.history
 
-    _.extend @::, Events
+    _.extend @prototype, Events
 
     # The default interval to poll for hash changes, if necessary, is
     # twenty times a second.
@@ -885,7 +885,7 @@ do (root = this) ->
     # Gets the true hash value. Cannot use location.hash directly due to bug
     # in Firefox where location.hash will always be decoded.
     getHash: (window) ->
-      match = (window || @).location.href.match /#(.*)$/
+      match = (window or this).location.href.match /#(.*)$/
       if match then match[1] else ''
 
     # Get the cross-browser normalized URL fragment, either from the URL,
@@ -1052,12 +1052,12 @@ do (root = this) ->
 
     constructor: (options) ->
       @cid = _.uniqueId 'view'
-      @_configure options || {}
+      @_configure options or {}
       @_ensureElement()
-      @initialize.apply @, arguments
+      @initialize.apply this, arguments
       @delegateEvents()
 
-    _.extend @::, Events
+    _.extend @prototype, Events
 
     # The default `tagName` of a View's element is `"div"`.
     tagName: 'div'
@@ -1075,14 +1075,14 @@ do (root = this) ->
     # to populate its element (`this.el`), with the appropriate HTML. The
     # convention is for **render** to always return `this`.
     render: ->
-      @
+      this
 
     # Remove this view by taking the element out of the DOM, and removing any
     # applicable Backbone.Events listeners.
     remove: ->
       @$el.remove()
       @stopListening()
-      @
+      this
 
     # Change the view's element (`this.el` property), including event
     # re-delegation.
@@ -1091,7 +1091,7 @@ do (root = this) ->
       @$el = if element instanceof Backbone.$ then element else Backbone.$ element
       @el = @$el[0]
       @delegateEvents() if delegate isnt false
-      @
+      this
 
     # Set callbacks, where `this.events` is a hash of
     #
@@ -1109,7 +1109,7 @@ do (root = this) ->
     # This only works for delegate-able events: not `focus`, `blur`, and
     # not `change`, `submit`, and `reset` in Internet Explorer.
     delegateEvents: (events) ->
-      return @ unless events or events = _.result @, 'events'
+      return this unless events or events = _.result this, 'events'
       @undelegateEvents()
       for key, method of events
         method = @[events[key]] unless _.isFunction method
@@ -1122,21 +1122,21 @@ do (root = this) ->
           @$el.on eventName, method
         else
           @$el.on eventName, selector, method
-      @
+      this
 
     # Clears all callbacks previously bound to the view with `delegateEvents`.
     # You usually don't need to use this, but may wish to if you have multiple
     # Backbone views attached to the same DOM element.
     undelegateEvents: ->
       @$el.off '.delegateEvents' + @cid
-      @
+      this
 
     # Performs the initial configuration of a View with a set of options.
     # Keys with special meaning *(model, collection, id, className)*, are
     # attached directly to the view.
     _configure: (options) ->
-      options = _.extend {}, _.result(@, 'options'), options if @options
-      _.extend @, _.pick(options, viewOptions)
+      options = _.extend {}, _.result(this, 'options'), options if @options
+      _.extend this, _.pick(options, viewOptions)
       @options = options
 
     # Ensure that the View has a DOM element to render into.
@@ -1145,12 +1145,12 @@ do (root = this) ->
     # an element from the `id`, `className` and `tagName` properties.
     _ensureElement: ->
       if @el
-        @setElement _.result(@, 'el'), false
+        @setElement _.result(this, 'el'), false
       else
-        attrs = _.extend {}, _.result(@, 'attributes')
-        attrs.id = _.result @, 'id' if @id
-        attrs['class'] = _.result @, 'className' if @className
-        $el = Backbone.$("<#{_.result(@, 'tagName')}>").attr(attrs)
+        attrs = _.extend {}, _.result(this, 'attributes')
+        attrs.id = _.result this, 'id' if @id
+        attrs['class'] = _.result this, 'className' if @className
+        $el = Backbone.$("<#{_.result(this, 'tagName')}>").attr(attrs)
         @setElement $el, false
 
   # Backbone.sync
@@ -1212,7 +1212,7 @@ do (root = this) ->
       beforeSend = options.beforeSend
       options.beforeSend = (xhr) ->
         xhr.setRequestHeader 'X-HTTP-Method-Override', type
-        return beforeSend.apply @, arguments if beforeSend
+        return beforeSend.apply this, arguments if beforeSend
 
     # Don't process data on a non-GET request.
     unless params.type is 'GET' or options.emulateJSON
@@ -1234,9 +1234,9 @@ do (root = this) ->
   # Similar to `goog.inherits`, but uses a hash of prototype properties and
   # class properties to be extended.
   extend = (protoProps, staticProps) ->
-    class extends @
-      _.extend @, staticProps
-      _.extend @::, protoProps
+    class extends this
+      _.extend this, staticProps
+      _.extend @prototype, protoProps
       @extend: extend
 
   # Set up inheritance for the model, collection, router, view and history.
