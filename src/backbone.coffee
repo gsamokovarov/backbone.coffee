@@ -263,10 +263,10 @@ do (root = this) ->
       return false unless @_validate attrs, options
 
       # Extract attributes and options.
-      {unset, silent} = options
-      changes         = []
-      changing        = @_changing
-      @_changing      = true
+      {unset}    = options
+      changes    = []
+      changing   = @_changing
+      @_changing = true
 
       unless changing
         @_previousAttributes = _.clone @attributes
@@ -283,16 +283,14 @@ do (root = this) ->
         if unset then delete current[attr] else current[attr] = val
 
       # Trigger all relevant attribute changes.
-      unless silent
-        @_pending = true if changes.length
-        for change in changes
-          @trigger "change:#{change}", this, current[change], options
+      @_pending = true if changes.length
+      for change in changes
+        @trigger "change:#{change}", this, current[change], options
 
       return this if changing
-      unless silent
-        while @_pending
-          @_pending = false
-          @trigger 'change', this, options
+      while @_pending
+        @_pending = false
+        @trigger 'change', this, options
 
       @_pending  = false
       @_changing = false
@@ -342,7 +340,7 @@ do (root = this) ->
       _.clone @_previousAttributes
 
     # Fetch the model from the server. If the server's representation of the
-    # model differs from its current attributes, they will be overriden,
+    # model differs from its current attributes, they will be overridden,
     # triggering a `"change"` event.
     fetch: (options) ->
       options = if options? then _.clone options else {}
