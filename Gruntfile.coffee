@@ -23,7 +23,7 @@ module.exports = (grunt) ->
         tasks: ['coffee']
       lib:
         files: ['lib/**/*.js']
-        tasks: ['qunit']
+        tasks: ['qunit', 'docco']
 
     docco:
       src: ['src/*.coffee']
