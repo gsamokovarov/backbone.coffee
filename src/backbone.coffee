@@ -768,16 +768,16 @@ do (root = this) ->
   # ---------------
   #
 
-  # Cached regular expressions for matching named param parts and splatted
-  # parts of route strings.
-  optionalParam = /\((.*?)\)/g
-  namedParam    = /(\(\?)?:\w+/g
-  splatParam    = /\*\w+/g
-  escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g
-
   # Routers map faux-URLs to actions, and fire events when routes are
   # matched. Creating a new one sets its `routes` hash, if not set statically.
   Router = class Backbone.Router
+
+    # Cached regular expressions for matching named param parts and splatted
+    # parts of route strings.
+    optionalParam = /\((.*?)\)/g
+    namedParam    = /(\(\?)?:\w+/g
+    splatParam    = /\*\w+/g
+    escapeRegExp  = /[\-{}\[\]+?.,\\\^$|#\s]/g
 
     constructor: (options = {}) ->
       {@routes} = options if options.routes
@@ -840,21 +840,21 @@ do (root = this) ->
   # Backbone.History
   # ----------------
 
-  # Cached regex for stripping a leading hash/slash and trailing space.
-  routeStripper = /^[#\/]|\s+$/g
-
-  # Cached regex for stripping leading and trailing slashes.
-  rootStripper = /^\/+|\/+$/g
-
-  # Cached regex for detecting MSIE.
-  isExplorer = /msie [\w.]+/
-
-  # Cached regex for removing a trailing slash.
-  trailingSlash = /\/$/
-
   # Handles cross-browser history management, based on URL fragments. If the
   # browser does not support `onhashchange`, falls back to polling.
   History = class Backbone.History
+
+    # Cached regex for stripping a leading hash/slash and trailing space.
+    routeStripper = /^[#\/]|\s+$/g
+
+    # Cached regex for stripping leading and trailing slashes.
+    rootStripper  = /^\/+|\/+$/g
+
+    # Cached regex for detecting MSIE.
+    isExplorer    = /msie [\w.]+/
+
+    # Cached regex for removing a trailing slash.
+    trailingSlash = /\/$/
 
     # Has the history handling already been started?
     @started: false
@@ -866,7 +866,7 @@ do (root = this) ->
       # Ensure that `History` can be used outside of the browser.
       if window?
         @location = window.location
-        @history = window.history
+        @history  = window.history
 
     _.extend @prototype, Events
 
@@ -877,8 +877,7 @@ do (root = this) ->
     # Gets the true hash value. Cannot use location.hash directly due to bug
     # in Firefox where location.hash will always be decoded.
     getHash: (window) ->
-      match = (window or this).location.href.match /#(.*)$/
-      if match then match[1] else ''
+      (window or this).location.href.match(/#(.*)$/)?[1] or ''
 
     # Get the cross-browser normalized URL fragment, either from the URL,
     # the hash, or the override.
@@ -1032,15 +1031,15 @@ do (root = this) ->
   # Backbone.View
   # -------------
 
-  # Cached regex to split keys for `delegate`.
-  delegateEventSplitter = /^(\S+)\s*(.*)$/
-
-  # List of view options to be merged as properties.
-  viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events']
-
   # Creating a Backbone.View creates its initial element outside of the DOM,
   # if an existing element is not provided...
   View = class Backbone.View
+
+    # Cached regex to split keys for `delegate`.
+    delegateEventSplitter = /^(\S+)\s*(.*)$/
+
+    # List of view options to be merged as properties.
+    viewOptions = ['model', 'collection', 'el', 'id', 'attributes', 'className', 'tagName', 'events']
 
     constructor: (options) ->
       @cid = _.uniqueId 'view'
