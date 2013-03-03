@@ -1187,7 +1187,7 @@ do (root = this) ->
       params.url = _.result(model, 'url') or urlError()
 
     # Ensure that we have the appropriate request data.
-    if !options.data? and model and (method is 'create' or method is 'update' or method is 'patch')
+    if !options.data? and model and (method in ['create', 'update', 'patch'])
       params.contentType = 'application/json'
       params.data = JSON.stringify options.attrs or model.toJSON(options)
 
@@ -1198,7 +1198,7 @@ do (root = this) ->
 
     # For older servers, emulate HTTP by mimicking the HTTP method with `_method`
     # And an `X-HTTP-Method-Override` header.
-    if options.emulateHTTP and (type is 'PUT' or type is 'DELETE' or type is 'PATCH')
+    if options.emulateHTTP and (type in ['PUT', 'DELETE', 'PATCH'])
       params.type = 'POST'
       params.data._method = type if options.emulateJSON
       {beforeSend} = options
