@@ -1178,7 +1178,7 @@ do (root = this) ->
       emulateJSON: Backbone.emulateJSON
 
     # Default JSON-request options.
-    params = type: type, dataType: 'json'
+    params = {type, dataType: 'json'}
 
     # Ensure that we have a URL.
     unless options.url
