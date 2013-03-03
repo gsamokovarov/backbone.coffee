@@ -1242,5 +1242,5 @@ do (root = this) ->
   wrapError = (model, options) ->
     {error} = options
     options.error = (resp) ->
-      error model, resp, options if error
+      error? model, resp, options
       model.trigger 'error', model, resp, options

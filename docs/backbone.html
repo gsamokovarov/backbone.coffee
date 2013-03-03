@@ -713,7 +713,7 @@ class properties to be extended.</p>             </td>             <td class="co
 <span class="sr">    throw new Error &#39;A &quot;url&quot; property or function must be specified&#39;</span></pre></div>             </td>           </tr>                               <tr id="section-180">             <td class="docs">               <div class="pilwrap">                 <a class="pilcrow" href="#section-180">&#182;</a>               </div>               <p>Wrap an optional error callback with a fallback error event.</p>             </td>             <td class="code">               <div class="highlight"><pre>  <span class="sr">wrapError = (model, options) -&gt;</span>
 <span class="sr">    {error} = options</span>
 <span class="sr">    options.error = (resp) -&gt;</span>
-<span class="sr">      error model, resp, options if error</span>
+<span class="sr">      error? model, resp, options</span>
 <span class="sr">      model.trigger &#39;error&#39;, model, resp, options</span>
 
 </pre></div>             </td>           </tr>                </tbody>     </table>   </div> </body> </html> 
