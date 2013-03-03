@@ -630,9 +630,9 @@ do (root = this) ->
 
       # Run sort based on type of `comparator`.
       if _.isString(@comparator) or @comparator.length is 1
-        @models = @sortBy(@comparator, this)
+        @models = @sortBy @comparator, this
       else
-        @models.sort _.bind(@comparator, this)
+        @models.sort _.bind @comparator, this
 
       @trigger 'sort', this, options unless options.silent
       this
@@ -647,7 +647,7 @@ do (root = this) ->
       options = _.extend {merge: true, remove: true}, options
       models = @parse models, options if options.parse
       @add models, options
-      @
+      this
 
     # When you have more items than you want to add or remove individually,
     # you can reset the entire set with a new list of models, without firing
@@ -660,7 +660,7 @@ do (root = this) ->
       @_reset()
       @add models, _.extend({silent: true}, options) if models
       @trigger 'reset', this, options unless options.silent
-      @
+      this
 
     # Fetch the default set of models for this collection, resetting the
     # collection when they arrive. If `update: true` is passed, the response
@@ -901,7 +901,7 @@ do (root = this) ->
       # Figure out the initial configuration. Do we need an iframe?
       # Is pushState desired ... is it available?
       @options          = _.extend {}, {root: '/'}, @options, options
-      @root             = @options.root
+      {@root}           = @options
       @_wantsHashChange = @options.hashChange isnt false
       @_wantsPushState  = !!@options.pushState
       @_hasPushState    = !!(@options.pushState and @history and @history.pushState)
