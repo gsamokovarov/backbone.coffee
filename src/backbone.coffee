@@ -387,7 +387,7 @@ do (root = this) ->
         @attributes = attributes
         serverAttrs = @parse resp, options
         serverAttrs = _.extend(attrs or {}, serverAttrs) if options.wait
-        if _.isObject(serverAttrs) and !@set(serverAttrs, options)
+        if _.isObject(serverAttrs) and !@set serverAttrs, options
           return false
         success? this, resp, options
         @trigger 'sync', this, resp, options
