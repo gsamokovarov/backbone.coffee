@@ -112,10 +112,9 @@ do (root = this) ->
     # the callback is invoked, it will be removed.
     once: (name, callback, context) ->
       return this unless eventsApi(this, 'once', name, [callback, context]) and callback
-      self = this
-      once = _.once ->
-        self.off name, once
-        callback.apply this, arguments
+      once = _.once =>
+        @off name, once
+        callback.apply context, arguments
       once._callback = callback
       @on name, once, context
 
