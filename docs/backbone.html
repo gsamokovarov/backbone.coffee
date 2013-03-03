@@ -503,7 +503,7 @@ the hash, or the override.</p>             </td>             <td class="code">  
 <span class="sr">      unless fragment?</span>
 <span class="sr">        if @hasPushState or !@_wantsHashChange or forcePushState</span>
 <span class="sr">          fragment = @location.pathname</span>
-<span class="sr">          root = @root.replace(trailingSlash, &#39;&#39;)</span>
+<span class="sr">          root = @root.replace trailingSlash, &#39;&#39;</span>
 <span class="sr">          fragment = fragment.substr root.length unless root in fragment</span>
 <span class="sr">        else</span>
 <span class="sr">          fragment = @getHash()</span>

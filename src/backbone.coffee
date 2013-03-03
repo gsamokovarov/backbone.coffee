@@ -885,7 +885,7 @@ do (root = this) ->
       unless fragment?
         if @hasPushState or !@_wantsHashChange or forcePushState
           fragment = @location.pathname
-          root = @root.replace(trailingSlash, '')
+          root = @root.replace trailingSlash, ''
           fragment = fragment.substr root.length unless root in fragment
         else
           fragment = @getHash()
