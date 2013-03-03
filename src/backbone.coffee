@@ -357,7 +357,7 @@ do (root = this) ->
     # If the server returns an attributes hash that differs, the model's
     # state will be `set` again.
     save: (key, val, options = {}) ->
-      attributes = @attributes
+      {attributes} = this
 
       # Handle both `"key", value` and `{key: value}` -style arguments.
       if !key? or typeof key is 'object'
@@ -578,7 +578,7 @@ do (root = this) ->
 
     # Remove a model from the end of the collection.
     pop: (options) ->
-      model = @at(@length - 1)
+      model = @at @length - 1
       @remove model, options
       model
 
