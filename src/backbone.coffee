@@ -1189,7 +1189,7 @@ do (root = this) ->
     # Ensure that we have the appropriate request data.
     if !options.data? and model and (method is 'create' or method is 'update' or method is 'patch')
       params.contentType = 'application/json'
-      params.data = JSON.stringify(options.attrs or model.toJSON(options))
+      params.data = JSON.stringify options.attrs or model.toJSON(options)
 
     # For older servers, emulate JSON by encoding the request into an HTML-form.
     if options.emulateJSON
