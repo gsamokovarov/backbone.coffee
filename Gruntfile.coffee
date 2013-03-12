@@ -4,6 +4,7 @@ module.exports = (grunt) ->
 
     uglify:
       dist:
+        src: ['lib/backbone.js']
         dest: 'backbone.min.js'
 
     qunit:
