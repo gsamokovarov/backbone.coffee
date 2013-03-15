@@ -126,7 +126,7 @@ do (root = this) ->
       return this unless @_events and eventsApi this, 'off', name, [callback, context]
       unless name or callback or context
         @_events = {}
-        return @
+        return this
 
       names = if name then [name] else _.keys @_events
       for name in names when events = @_events[name]
